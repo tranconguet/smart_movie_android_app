@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">SmartMovie</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="home_string">Discover</string>
+    <string name="genre_string">Genre</string>
+    <string name="search_string">Search</string>
+    <string name="artist_string">Artist</string>
+    <string name="smart_movie_string">Smart Movie</string>
+    <string name="load_data_fail_string">Load data fail</string>
+    <string name="load_data_fail_message_string">Can\'t load data from server, please try again later.</string>
+    <string name="reload_string">Reload</string>
+    <string name="see_all_string">See all</string>
+    <string name="movie_detail_string">Movie Detail</string>
+    <string name="genres_string">Genres</string>
+    <string name="search_movie_string">Search</string>
+    <string name="search_cancel_string">Cancel</string>
+    <string name="search_bar_hint_string">Search</string>
+</resources>

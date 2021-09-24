@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ui.view.MainActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/tbMain"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/toolbar_height"
+        android:background="@color/white"
+        android:elevation="0dp"
+        android:visibility="gone"
+        android:gravity="center">
+    </androidx.appcompat.widget.Toolbar>
+
+    <fragment
+        android:id="@+id/fragmentContainerView"
+        android:name="androidx.navigation.fragment.NavHostFragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/main_nav"
+        tools:ignore="FragmentTagUsage" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bnMain"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:menu="@menu/main_menu"/>
+</LinearLayout>

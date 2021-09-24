@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layoutMovie"
+    android:layout_width="@dimen/grid_display_movie_item_width"
+    android:layout_height="@dimen/grid_display_movie_item_height"
+    android:layout_margin="@dimen/grid_display_movie_item_margin"
+    android:background="@color/white">
+
+    <ImageView
+        android:id="@+id/ivMovieImage"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/grid_display_movie_item_image_height"
+        android:scaleType="centerCrop"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
+
+    <TextView
+        android:id="@+id/tvMovieName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_8dp"
+        android:text="Vi sao em toi asd"
+        android:gravity="center"
+        android:textColor="@color/black"
+        android:textSize="@dimen/grid_display_movie_item_movie_name_text_size"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ivMovieImage" />
+
+    <TextView
+        android:id="@+id/tvMovieInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_8dp"
+        android:text="1h, 25mins"
+        android:gravity="center"
+        android:textSize="@dimen/grid_display_movie_item_movie_info_text_size"
+        app:layout_constraintEnd_toEndOf="@+id/tvMovieName"
+        app:layout_constraintHorizontal_bias="0.489"
+        app:layout_constraintStart_toStartOf="@+id/tvMovieName"
+        app:layout_constraintTop_toBottomOf="@+id/tvMovieName" />
+
+    <ImageView
+        android:id="@+id/ivStar"
+        android:layout_width="@dimen/star_icon_size"
+        android:layout_height="@dimen/star_icon_size"
+        android:layout_margin="@dimen/star_icon_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/star_default"
+        tools:ignore="ContentDescription" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
