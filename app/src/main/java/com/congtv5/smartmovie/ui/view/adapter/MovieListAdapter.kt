@@ -1,91 +1,161 @@
 package com.congtv5.smartmovie.ui.view.adapter
 
-import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.congtv5.smartmovie.R
+import com.congtv5.smartmovie.data.database.entity.FavoriteMovieEntity
 import com.congtv5.smartmovie.data.model.pageresult.Result
-import com.congtv5.smartmovie.databinding.GridDisplayMovieItemLayoutBinding
-import com.congtv5.smartmovie.databinding.LinearDisplayMovieItemLayoutBinding
 import com.congtv5.smartmovie.ui.view.adapter.diffutil.MovieDiffUtil
 import com.congtv5.smartmovie.utils.Constants.IMAGE_BASE_URL
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
 
-class MovieListAdapter(private val displayType: MovieItemDisplayType, context: Context, private var onMovieClick: (Int) -> Unit) :
-    ListAdapter<Result, RecyclerView.ViewHolder>(MovieDiffUtil()) {
+class MovieListAdapter(
+    private val displayType: MovieItemDisplayType,
+    private var onMovieClick: (Int) -> Unit,
+    private var onStarClick: (FavoriteMovieEntity) -> Unit,
+    private var isMovieFavorite: (Int) -> Boolean
+) : ListAdapter<Result, RecyclerView.ViewHolder>(MovieDiffUtil()) {
 
-    private val glide = Glide.with(context)
 
-    inner class MovieGridItemViewHolder(private val binding: GridDisplayMovieItemLayoutBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    class MovieGridItemViewHolder(
+        view: View,
+        private var onMovieClick: (Int) -> Unit,
+        private var onStarClick: (FavoriteMovieEntity) -> Unit,
+        private var isMovieFavorite: (Int) -> Boolean
+    ) : RecyclerView.ViewHolder(view) {
 
         private var movie: Result? = null
+        private val layoutMovie = view.findViewById<ConstraintLayout>(R.id.layoutMovie)
+        private val tvMovieName = view.findViewById<TextView>(R.id.tvMovieName)
+        private val ivMovieImage = view.findViewById<ImageView>(R.id.ivMovieImage)
+        private val ivStar = view.findViewById<ImageView>(R.id.ivStar)
 
         init {
-            binding.layoutMovie.setOnClickListener {
-                movie?.let { movie ->
-                    onMovieClick.invoke(movie.id)
+            layoutMovie.setOnClickListener {
+                if (movie != null) {
+                    onMovieClick.invoke(movie!!.id)
+                } else {
+                    //handle null case
+                    Log.d("CongTV5", "MovieGridItemViewHolder #init() movie is null")
                 }
             }
+
+            ivStar.setOnClickListener {
+                if (movie != null) {
+                    val isFav = isMovieFavorite.invoke(movie!!.id)
+                    //set icon
+                    if(!isFav){
+                        ivStar.setImageResource(R.drawable.star_active)
+                    }else{
+                        ivStar.setImageResource(R.drawable.star_default)
+                    }
+
+                    val favMovie = FavoriteMovieEntity(movie!!.id, !isFav)
+                    onStarClick.invoke(favMovie)
+                } else {
+                    //handle null case
+                    Log.d("CongTV5", "MovieGridItemViewHolder #init() movie is null")
+                }
+            }
+
         }
 
         fun bind(movie: Result) {
             this.movie = movie
-            binding.tvMovieName.text = movie.title
+
+            tvMovieName.text = movie.title
+
+            val isFav = isMovieFavorite.invoke(movie.id)
+            if(isFav){
+                ivStar.setImageResource(R.drawable.star_active)
+            }else{
+                ivStar.setImageResource(R.drawable.star_default)
+            }
+
             val imageUrl = IMAGE_BASE_URL + movie.poster_path
-            glide.load(imageUrl)
+            Glide.with(ivMovieImage)
+                .load(imageUrl)
                 .placeholder(R.drawable.ic_place_holder)
                 .error(R.drawable.ic_error)
-                .into(binding.ivMovieImage)
+                .into(ivMovieImage)
         }
-
     }
 
-    inner class MovieLinearItemViewHolder(private val binding: LinearDisplayMovieItemLayoutBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    class MovieLinearItemViewHolder(
+        view: View,
+        private var onMovieClick: (Int) -> Unit,
+        private var onStarClick: (FavoriteMovieEntity) -> Unit,
+        private var isMovieFavorite: (Int) -> Boolean
+    ) : RecyclerView.ViewHolder(view) {
 
         private var movie: Result? = null
+        private val layoutMovie = view.findViewById<ConstraintLayout>(R.id.layoutMovie)
+        private val tvMovieName = view.findViewById<TextView>(R.id.tvMovieName)
+        private val ivMovieImage = view.findViewById<ImageView>(R.id.ivMovieImage)
+        private val ivStar = view.findViewById<ImageView>(R.id.ivStar)
 
         init {
-            binding.layoutMovie.setOnClickListener {
-                movie?.let { movie ->
-                    onMovieClick.invoke(movie.id)
+            layoutMovie.setOnClickListener {
+                if (movie != null) {
+                    onMovieClick.invoke(movie!!.id)
+                } else {
+                    //handle null case
+                    Log.d("CongTV5", "MovieLinearItemViewHolder #init() movie is null")
+                }
+            }
+
+            ivStar.setOnClickListener {
+                if (movie != null) {
+                    val isFav = isMovieFavorite.invoke(movie!!.id)
+                    val favMovie = FavoriteMovieEntity(movie!!.id, !isFav)
+                    onStarClick.invoke(favMovie)
+                } else {
+                    //handle null case
+                    Log.d("CongTV5", "MovieGridItemViewHolder #init() movie is null")
                 }
             }
         }
 
         fun bind(movie: Result) {
             this.movie = movie
-            binding.tvMovieName.text = movie.title
+
+            val isFav = isMovieFavorite.invoke(movie.id)
+            if(isFav){
+                ivStar.setImageResource(R.drawable.star_active)
+            }else{
+                ivStar.setImageResource(R.drawable.star_default)
+            }
+
+            tvMovieName.text = movie.title
+
             val imageUrl = IMAGE_BASE_URL + movie.poster_path
-            glide.load(imageUrl)
+            Glide.with(ivMovieImage)
+                .load(imageUrl)
                 .placeholder(R.drawable.ic_place_holder)
                 .error(R.drawable.ic_error)
-                .into(binding.ivMovieImage)
+                .into(ivMovieImage)
         }
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (displayType) {
             MovieItemDisplayType.GRID -> {
-                val binding = GridDisplayMovieItemLayoutBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
-                MovieGridItemViewHolder(binding)
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.grid_display_movie_item_layout, parent, false)
+                MovieGridItemViewHolder(view, onMovieClick, onStarClick, isMovieFavorite)
             }
             MovieItemDisplayType.VERTICAL_LINEAR -> {
-                val binding = LinearDisplayMovieItemLayoutBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
-                MovieLinearItemViewHolder(binding)
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.linear_display_movie_item_layout, parent, false)
+                MovieLinearItemViewHolder(view, onMovieClick, onStarClick, isMovieFavorite)
             }
         }
     }

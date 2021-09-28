@@ -1,19 +1,14 @@
 package com.congtv5.smartmovie.data.repository
 
-import android.util.Log
 import com.congtv5.smartmovie.data.model.castandcrewlist.CastAndCrew
 import com.congtv5.smartmovie.data.model.movie.MovieDetail
 import com.congtv5.smartmovie.data.model.pageresult.MovieListPage
 import com.congtv5.smartmovie.data.remote.api.MovieApi
-import com.congtv5.smartmovie.utils.Constants.API_KEY
 import com.congtv5.smartmovie.utils.Constants.NETWORK_ERROR_MESSAGE
 import com.congtv5.smartmovie.utils.DispatcherProvider
 import com.congtv5.smartmovie.utils.Resource
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import java.lang.Exception
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class MovieRepository @Inject constructor(
@@ -21,65 +16,71 @@ class MovieRepository @Inject constructor(
     private var dispatcherProvider: DispatcherProvider,
 ) : IMovieRepository {
 
-    override fun getMovieDetails(movieId: Int): Flow<Resource<MovieDetail>> = flow {
-        val result: Resource<MovieDetail> = try {
-            val movieListPage = movieApi.getMovieDetails(movieId)
-            Resource.Success(movieListPage)
-        } catch (e: Exception) {
-            Resource.Error(NETWORK_ERROR_MESSAGE)
+    override suspend fun getMovieDetails(movieId: Int): Resource<MovieDetail> {
+        return withContext(dispatcherProvider.io) {
+            try {
+                val movieDetail = movieApi.getMovieDetails(movieId)
+                Resource.Success(movieDetail)
+            } catch (e: Exception) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            }
         }
-        emit(result)
-    }.flowOn(dispatcherProvider.io)
+    }
 
-    override fun getCastAndCrewList(movieId: Int): Flow<Resource<CastAndCrew>> = flow {
-        val result: Resource<CastAndCrew> = try {
-            val movieListPage = movieApi.getCastAndCrewList(movieId)
-            Resource.Success(movieListPage)
-        } catch (e: Exception) {
-            Resource.Error(NETWORK_ERROR_MESSAGE)
+    override suspend fun getCastAndCrewList(movieId: Int): Resource<CastAndCrew> {
+        return withContext(dispatcherProvider.io) {
+            try {
+                val castAndCrew = movieApi.getCastAndCrewList(movieId)
+                Resource.Success(castAndCrew)
+            } catch (e: Exception) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            }
         }
-        emit(result)
-    }.flowOn(dispatcherProvider.io)
+    }
 
-    override fun getPopularMovieList(pageNumber: Int): Flow<Resource<MovieListPage>> = flow {
-        delay(2000L) // for testing
-        val result: Resource<MovieListPage> = try {
-            val movieListPage = movieApi.getPopularMovieList(pageNumber)
-            Resource.Success(movieListPage)
-        } catch (e: Exception) {
-            Resource.Error(NETWORK_ERROR_MESSAGE)
+    override suspend fun getPopularMovieList(pageNumber: Int): Resource<MovieListPage>{
+        delay(1000L) // for testing
+        return withContext(dispatcherProvider.io) {
+            try {
+                val movieList = movieApi.getPopularMovieList(pageNumber)
+                Resource.Success(movieList)
+            } catch (e: Exception) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            }
         }
-        emit(result)
-    }.flowOn(dispatcherProvider.io)
+    }
 
-    override fun getTopRatedMovieList(pageNumber: Int): Flow<Resource<MovieListPage>> = flow {
-        val result: Resource<MovieListPage> = try {
-            val movieListPage = movieApi.getTopRatedMovieList(pageNumber)
-            Resource.Success(movieListPage)
-        } catch (e: Exception) {
-            Resource.Error(NETWORK_ERROR_MESSAGE)
+    override suspend fun getTopRatedMovieList(pageNumber: Int): Resource<MovieListPage>{
+        return withContext(dispatcherProvider.io) {
+            try {
+                val movieList = movieApi.getTopRatedMovieList(pageNumber)
+                Resource.Success(movieList)
+            } catch (e: Exception) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            }
         }
-        emit(result)
-    }.flowOn(dispatcherProvider.io)
+    }
 
-    override fun getUpComingMovieList(pageNumber: Int): Flow<Resource<MovieListPage>> = flow {
-        val result: Resource<MovieListPage> = try {
-            val movieListPage = movieApi.getUpComingMovieList(pageNumber)
-            Resource.Success(movieListPage)
-        } catch (e: Exception) {
-            Resource.Error(NETWORK_ERROR_MESSAGE)
+    override suspend fun getUpComingMovieList(pageNumber: Int): Resource<MovieListPage>{
+        return withContext(dispatcherProvider.io) {
+            try {
+                val movieList = movieApi.getUpComingMovieList(pageNumber)
+                Resource.Success(movieList)
+            } catch (e: Exception) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            }
         }
-        emit(result)
-    }.flowOn(dispatcherProvider.io)
+    }
 
-    override fun getNowPlayingMovieList(pageNumber: Int): Flow<Resource<MovieListPage>> = flow {
-        val result: Resource<MovieListPage> = try {
-            val movieListPage = movieApi.getNowPlayingMovieList(pageNumber)
-            Resource.Success(movieListPage)
-        } catch (e: Exception) {
-            Resource.Error(NETWORK_ERROR_MESSAGE)
+    override suspend fun getNowPlayingMovieList(pageNumber: Int): Resource<MovieListPage>{
+        return withContext(dispatcherProvider.io) {
+            try {
+                val movieList = movieApi.getNowPlayingMovieList(pageNumber)
+                Resource.Success(movieList)
+            } catch (e: Exception) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            }
         }
-        emit(result)
-    }.flowOn(dispatcherProvider.io)
+    }
 
 }

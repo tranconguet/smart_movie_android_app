@@ -1,12 +1,12 @@
 package com.congtv5.smartmovie.utils
 
-import android.util.Log
 import androidx.fragment.app.Fragment
 import com.congtv5.smartmovie.data.model.movie.Genre
 import com.congtv5.smartmovie.ui.view.fragments.home.NowPlayingMovieFragment
 import com.congtv5.smartmovie.ui.view.fragments.home.PopularMovieFragment
 import com.congtv5.smartmovie.ui.view.fragments.home.TopRatedMovieFragment
 import com.congtv5.smartmovie.ui.view.fragments.home.UpComingMovieFragment
+import com.congtv5.smartmovie.utils.Constants.EMPTY_TEXT
 import java.text.DateFormatSymbols
 import java.util.*
 
@@ -19,15 +19,18 @@ fun getFragmentByMovieCategory(movieCategory: MovieCategory): Fragment {
     }
 }
 
-fun formatRatingToString(rating: Double): String{
+fun formatRatingToString(rating: Double): String {
     return "$rating / 10"
 }
 
 fun formatGenresToString(genres: List<Genre>): String {
-    Log.d("Testing", genres.toString())
-    return genres.map { genre ->
-        "${genre.name} | "
-    }.joinToString("").dropLast(2)
+    return if (genres.isNotEmpty()) {
+        genres.joinToString("") { genre ->
+            "${genre.name} | "
+        }.dropLast(2)
+    } else {
+        EMPTY_TEXT
+    }
 }
 
 fun formatLanguageToString(language: String): String {
@@ -54,16 +57,17 @@ fun formatDate(str: String): String {
         val date = list[2]
         "$month ${date}, $year"
     } else {
-        ""
+        // api result fail
+        EMPTY_TEXT
     }
 }
 
 fun formatTime(number: Int): String {
     val hours = number / 60
     val minutes = number - hours * 60
-    return if (hours != 0) {
-        "${hours}h ${minutes}m"
-    } else {
-        "${minutes}m"
+    return when {
+        hours > 0 -> "${hours}h ${minutes}m"
+        hours == 0 -> "${minutes}m"
+        else -> EMPTY_TEXT // api result fail
     }
 }

@@ -4,15 +4,12 @@ import com.congtv5.smartmovie.data.model.castandcrewlist.CastAndCrew
 import com.congtv5.smartmovie.data.model.movie.MovieDetail
 import com.congtv5.smartmovie.data.model.pageresult.MovieListPage
 import com.congtv5.smartmovie.utils.Resource
-import kotlinx.coroutines.flow.Flow
 
 interface IMovieRepository {
-
-    fun getMovieDetails(movieId: Int): Flow<Resource<MovieDetail>>
-    fun getCastAndCrewList(movieId: Int): Flow<Resource<CastAndCrew>>
-    fun getPopularMovieList(pageNumber: Int): Flow<Resource<MovieListPage>>
-    fun getTopRatedMovieList(pageNumber: Int): Flow<Resource<MovieListPage>>
-    fun getUpComingMovieList(pageNumber: Int): Flow<Resource<MovieListPage>>
-    fun getNowPlayingMovieList(pageNumber: Int): Flow<Resource<MovieListPage>>
-
+    suspend fun getMovieDetails(movieId: Int): Resource<MovieDetail>
+    suspend fun getCastAndCrewList(movieId: Int): Resource<CastAndCrew>
+    suspend fun getPopularMovieList(pageNumber: Int): Resource<MovieListPage>
+    suspend fun getTopRatedMovieList(pageNumber: Int): Resource<MovieListPage>
+    suspend fun getUpComingMovieList(pageNumber: Int): Resource<MovieListPage>
+    suspend fun getNowPlayingMovieList(pageNumber: Int):Resource<MovieListPage>
 }

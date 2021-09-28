@@ -7,14 +7,14 @@
     android:layout_marginBottom="@dimen/genre_item_margin_margin">
 
     <ImageView
-        android:id="@+id/ivGenreImage"
+        android:id="@+id/ivSearchItemImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:ignore="ContentDescription"
         android:scaleType="centerCrop"/>
 
     <TextView
-        android:id="@+id/tvGenreTitle"
+        android:id="@+id/tvSearchItemTitle"
         android:layout_width="match_parent"
         android:layout_height="@dimen/genre_title_height"
         android:fontFamily="sans-serif"
@@ -23,7 +23,7 @@
         android:paddingStart="@dimen/genre_title_padding_start"
         android:textColor="@color/black"
         android:textSize="@dimen/genre_title_text_size"
-        app:layout_constraintBottom_toBottomOf="@+id/ivGenreImage"
+        app:layout_constraintBottom_toBottomOf="@+id/ivSearchItemImage"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"

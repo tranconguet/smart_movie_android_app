@@ -1,40 +1,42 @@
 package com.congtv5.smartmovie.ui.view.adapter
 
-import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.congtv5.smartmovie.R
-import com.congtv5.smartmovie.data.model.genre.Genre
-import com.congtv5.smartmovie.databinding.GenreItemLayoutBinding
+import com.congtv5.smartmovie.data.model.movie.Genre
 import com.congtv5.smartmovie.ui.view.adapter.diffutil.GenreDiffUtil
-import com.congtv5.smartmovie.utils.Constants
 
-class GenreListAdapter(context: Context) :
+class GenreListAdapter :
     ListAdapter<Genre, GenreListAdapter.GenreViewHolder>(GenreDiffUtil()) {
 
-    private val glide = Glide.with(context)
+    class GenreViewHolder(view: View) :
+        RecyclerView.ViewHolder(view) {
 
-    inner class GenreViewHolder(private val binding: GenreItemLayoutBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+        private val tvGenreTitle = view.findViewById<TextView>(R.id.tvSearchItemTitle)
+        private val ivGenreImage = view.findViewById<ImageView>(R.id.ivSearchItemImage)
 
         fun bind(genre: Genre) {
-            binding.tvGenreTitle.text = genre.name
 
-//            val imageUrl = Constants.IMAGE_BASE_URL + genre.poster_path
-            glide.load(R.drawable.test_genre_image)
+            tvGenreTitle.text = genre.name
+
+            Glide.with(ivGenreImage)
+                .load(R.drawable.test_genre_image)
                 .placeholder(R.drawable.ic_place_holder)
                 .error(R.drawable.ic_error)
-                .into(binding.ivGenreImage)
+                .into(ivGenreImage)
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GenreViewHolder {
-        val binding =
-            GenreItemLayoutBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return GenreViewHolder(binding)
+        val view =
+            LayoutInflater.from(parent.context).inflate(R.layout.genre_item_layout, parent, false)
+        return GenreViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: GenreViewHolder, position: Int) {

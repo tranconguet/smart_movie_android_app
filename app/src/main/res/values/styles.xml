@@ -9,5 +9,19 @@
         <item name="android:textColor">@color/common_color</item>
         <item name="android:textSize">@dimen/common_text_size</item>
     </style>
+
+    <style name="MainNavigationTextStyle" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">@dimen/main_navigation_text_size</item>
+        <item name="android:fontFamily">sans-serif-condensed-light</item>
+        <item name="textAllCaps">false</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="RatingBar" parent="Theme.AppCompat">
+        <item name="android:minHeight">15dp</item>
+        <item name="android:maxHeight">15dp</item>
+        <item name="colorControlNormal">@color/default_color</item>
+        <item name="colorControlActivated">@color/yellow</item>
+    </style>
 </resources>
 

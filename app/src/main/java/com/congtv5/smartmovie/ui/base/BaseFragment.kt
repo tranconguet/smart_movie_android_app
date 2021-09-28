@@ -6,41 +6,32 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
 import androidx.fragment.app.Fragment
-import androidx.viewbinding.ViewBinding
 
 
-abstract class BaseFragment<out T : ViewBinding> : Fragment() {
+abstract class BaseFragment : Fragment() {
 
-    private var _binding: T? = null
+    abstract fun getLayoutID(): Int
 
-    val binding
-        get() = _binding ?: throw IllegalStateException(
-            "binding is only valid between onCreateView and onDestroyView"
-        )
-
+    @CallSuper
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        _binding = createBinding(inflater, container, savedInstanceState)
-        return binding.root
+        return inflater.inflate(getLayoutID(), container, false)
     }
-
-    abstract fun createBinding(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): T?
 
     @CallSuper
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initBinding(view)
         initObserveData()
         initData()
         initView()
         initAction()
     }
+
+    abstract fun initBinding(view: View)
 
     abstract fun initObserveData()
 
@@ -50,9 +41,4 @@ abstract class BaseFragment<out T : ViewBinding> : Fragment() {
 
     abstract fun initAction()
 
-    @CallSuper
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
 }

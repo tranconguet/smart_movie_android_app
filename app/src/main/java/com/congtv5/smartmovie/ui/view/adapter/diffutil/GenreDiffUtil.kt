@@ -1,8 +1,7 @@
 package com.congtv5.smartmovie.ui.view.adapter.diffutil
 
 import androidx.recyclerview.widget.DiffUtil
-import com.congtv5.smartmovie.data.model.genre.Genre
-import com.congtv5.smartmovie.data.model.pageresult.Result
+import com.congtv5.smartmovie.data.model.movie.Genre
 
 class GenreDiffUtil : DiffUtil.ItemCallback<Genre>() {
 

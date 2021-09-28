@@ -1,17 +1,13 @@
 package com.congtv5.smartmovie.ui.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.congtv5.smartmovie.data.model.genre.Genre
-import com.congtv5.smartmovie.data.model.movie.MovieDetail
+import com.congtv5.smartmovie.data.model.movie.Genre
 import com.congtv5.smartmovie.data.repository.GenreRepository
-import com.congtv5.smartmovie.data.repository.MovieRepository
 import com.congtv5.smartmovie.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,17 +28,15 @@ class GenreListViewModel @Inject constructor(
     fun getGenreList() {
         setIsLoading(true)
         viewModelScope.launch {
-            genreRepository.getGenreList().collect { genreListResource ->
-                when (genreListResource) {
-                    is Resource.Success -> {
-                        _genres.value = genreListResource.data?.genres ?: listOf()
-                    }
-                    else -> {
-                        setIsError(true)
-                    }
+            when (val genresResource = genreRepository.getGenreList()) {
+                is Resource.Success -> {
+                    _genres.value = genresResource.data?.genres ?: listOf()
                 }
-                setIsLoading(false)
+                else -> {
+                    setIsError(true)
+                }
             }
+            setIsLoading(false)
         }
     }
 

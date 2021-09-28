@@ -1,20 +1,16 @@
 package com.congtv5.smartmovie.ui.view.fragments.home
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import com.congtv5.smartmovie.databinding.FragmentAllMovieBinding
-import com.congtv5.smartmovie.databinding.FragmentUpComingMovieBinding
+import android.view.View
+import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.base.BaseFragment
 
-class UpComingMovieFragment : BaseFragment<FragmentUpComingMovieBinding>() {
+class UpComingMovieFragment : BaseFragment() {
 
-    override fun createBinding(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): FragmentUpComingMovieBinding {
-        return FragmentUpComingMovieBinding.inflate(inflater, container, false)
+    override fun getLayoutID(): Int {
+        return R.layout.fragment_up_coming_movie
+    }
+
+    override fun initBinding(view: View) {
     }
 
     override fun initObserveData() {

@@ -12,4 +12,5 @@
     <color name="blue">#3299FF</color>
     <color name="white_with_opacity">#80FFFFFF</color>
     <color name="search_bar_color">#D6DCDF</color>
+    <color name="yellow">#FF8E00</color>
 </resources>

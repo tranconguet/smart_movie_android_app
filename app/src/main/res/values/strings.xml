@@ -16,4 +16,9 @@
     <string name="search_movie_string">Search</string>
     <string name="search_cancel_string">Cancel</string>
     <string name="search_bar_hint_string">Search</string>
+    <string name="cast_string">Cast</string>
+    <string name="bottom_nav_discover">Discover</string>
+    <string name="bottom_nav_search">Search</string>
+    <string name="bottom_nav_genres">Genres</string>
+    <string name="bottom_nav_artist">Artist</string>
 </resources>

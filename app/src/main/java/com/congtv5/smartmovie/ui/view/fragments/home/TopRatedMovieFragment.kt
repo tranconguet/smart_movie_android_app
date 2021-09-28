@@ -1,20 +1,18 @@
 package com.congtv5.smartmovie.ui.view.fragments.home
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import com.congtv5.smartmovie.databinding.FragmentTopRatedMovieBinding
+import android.view.View
+import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.base.BaseFragment
 
-class TopRatedMovieFragment : BaseFragment<FragmentTopRatedMovieBinding>() {
+class TopRatedMovieFragment : BaseFragment() {
 
-    override fun createBinding(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): FragmentTopRatedMovieBinding {
-        return FragmentTopRatedMovieBinding.inflate(inflater, container, false)
+    override fun getLayoutID(): Int {
+        return R.layout.fragment_top_rated_movie
     }
+
+    override fun initBinding(view: View) {
+    }
+
 
     override fun initObserveData() {
     }

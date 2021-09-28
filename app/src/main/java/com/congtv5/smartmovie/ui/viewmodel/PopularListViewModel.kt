@@ -1,16 +1,13 @@
 package com.congtv5.smartmovie.ui.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.congtv5.smartmovie.data.model.pageresult.MovieListPage
 import com.congtv5.smartmovie.data.repository.MovieRepository
 import com.congtv5.smartmovie.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,6 +15,12 @@ import javax.inject.Inject
 class PopularListViewModel @Inject constructor(
     private var movieRepository: MovieRepository
 ) : ViewModel() {
+
+    private val _isError = MutableStateFlow(false)
+    val isError: StateFlow<Boolean> = _isError
+
+    private val _isReloading = MutableStateFlow(false)
+    val isReloading: StateFlow<Boolean> = _isReloading
 
     private var _currentPage = MutableStateFlow(1)
     val currentPage: StateFlow<Int> = _currentPage
@@ -33,24 +36,26 @@ class PopularListViewModel @Inject constructor(
     }
 
     fun getNextMovieListPage() {
-        setIsLoadingMore(true)
+        if (_currentPage.value >= 1)
+            setIsLoadingMore(true)
         viewModelScope.launch {
-            movieRepository.getPopularMovieList(_currentPage.value + 1)
-                .collect { movieListPagesResource ->
-                    delay(3000L)
-                    when (movieListPagesResource) {
-                        is Resource.Success -> {
-                            movieListPagesResource.data?.let { newList ->
-                                increasePage()
-                                addToMovieListPages(newList)
-                            }
-                            setIsLoadingMore(false)
-                        }
-                        else -> {
-                            setIsLoadingMore(false)
-                        }
+            when (val moviesResource =
+                movieRepository.getPopularMovieList(_currentPage.value + 1)) {
+                is Resource.Success -> {
+                    moviesResource.data?.let { newList ->
+                        increasePage()
+                        addToMovieListPages(newList)
                     }
+                    setIsReloading(false)
+                    if (_currentPage.value >= 1)
+                        setIsLoadingMore(false)
                 }
+                else -> {
+                    setIsReloading(false)
+                    if (_currentPage.value >= 1)
+                        setIsLoadingMore(false)
+                }
+            }
         }
     }
 
@@ -67,6 +72,23 @@ class PopularListViewModel @Inject constructor(
 
     fun setIsLoadingMore(value: Boolean) {
         _isLoadingMore.value = value
+    }
+
+    fun clearData() {
+        _currentPage.value = 0
+        _popularMovieListPages.value = mutableListOf()
+    }
+
+    fun setIsError(value: Boolean) {
+        _isError.value = value
+    }
+
+    fun setIsReloading(value: Boolean) {
+        _isReloading.value = value
+    }
+
+    fun setCurrentPage(value: Int) {
+        _currentPage.value = value
     }
 
 }
