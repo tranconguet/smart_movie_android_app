@@ -2,19 +2,20 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layoutGenreItem"
     android:layout_width="match_parent"
     android:layout_height="@dimen/genre_item_height"
     android:layout_marginBottom="@dimen/genre_item_margin_margin">
 
     <ImageView
-        android:id="@+id/ivSearchItemImage"
+        android:id="@+id/ivGenreItemImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:ignore="ContentDescription"
         android:scaleType="centerCrop"/>
 
     <TextView
-        android:id="@+id/tvSearchItemTitle"
+        android:id="@+id/tvGenreItemTitle"
         android:layout_width="match_parent"
         android:layout_height="@dimen/genre_title_height"
         android:fontFamily="sans-serif"
@@ -23,7 +24,7 @@
         android:paddingStart="@dimen/genre_title_padding_start"
         android:textColor="@color/black"
         android:textSize="@dimen/genre_title_text_size"
-        app:layout_constraintBottom_toBottomOf="@+id/ivSearchItemImage"
+        app:layout_constraintBottom_toBottomOf="@+id/ivGenreItemImage"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"

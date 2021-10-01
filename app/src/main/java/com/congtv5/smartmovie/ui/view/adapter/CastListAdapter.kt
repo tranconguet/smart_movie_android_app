@@ -8,8 +8,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.congtv5.domain.model.Cast
 import com.congtv5.smartmovie.R
-import com.congtv5.smartmovie.data.model.castandcrewlist.Cast
 import com.congtv5.smartmovie.ui.view.adapter.diffutil.CastDiffUtil
 import com.congtv5.smartmovie.utils.Constants
 
@@ -25,7 +25,7 @@ class CastListAdapter :
         fun bind(cast: Cast) {
             tvCastName.text = cast.name
 
-            val imageUrl = Constants.IMAGE_BASE_URL + cast.profile_path
+            val imageUrl = Constants.IMAGE_BASE_URL + cast.profilePath
             Glide.with(ivCastImage)
                 .load(imageUrl)
                 .placeholder(R.drawable.ic_place_holder)

@@ -6,8 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/light_grey"
-    tools:context=".ui.view.fragments.MovieDetailFragment">
-
+    tools:context=".ui.view.fragments.moviedetail.MovieDetailFragment">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/tbMain"
@@ -60,13 +59,13 @@
             android:id="@+id/layoutHome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:background="@color/white"
+            android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tbMain">
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/layoutMovieImageAndInfo"
+                android:id="@+id/layoutMovieInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -117,13 +116,15 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center">
+
                         <RatingBar
                             android:id="@+id/rbRatingBar"
+                            style="?android:attr/ratingBarStyleIndicator"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:isIndicator="true"
-                            style="?android:attr/ratingBarStyleIndicator"
-                            android:theme="@style/RatingBar"/>
+                            android:theme="@style/RatingBar" />
+
                         <TextView
                             android:id="@+id/tvRating"
                             android:layout_width="wrap_content"
@@ -160,14 +161,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/movie_detail_overview_margin_horizontal"
-                android:layout_marginEnd="@dimen/movie_detail_overview_margin_horizontal"
                 android:layout_marginTop="@dimen/movie_detail_overview_margin_top"
+                android:layout_marginEnd="@dimen/movie_detail_overview_margin_horizontal"
                 android:ellipsize="end"
                 android:textSize="@dimen/movie_detail_movie_description_text_size"
-                app:layout_constraintTop_toBottomOf="@+id/layoutMovieImageAndInfo"/>
+                app:layout_constraintTop_toBottomOf="@+id/layoutMovieInfo" />
 
             <LinearLayout
-                android:id="@+id/linearLayout2"
+                android:id="@+id/layoutCast"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -195,5 +196,25 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
+
+    <ProgressBar
+        android:id="@+id/prbMovieInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/prbCast"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/prbCast"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/prbMovieInfo" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

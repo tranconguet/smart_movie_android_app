@@ -16,7 +16,7 @@
     </fragment>
     <fragment
         android:id="@+id/movieDetailFragment2"
-        android:name="com.congtv5.smartmovie.ui.view.fragments.MovieDetailFragment"
+        android:name="com.congtv5.smartmovie.ui.view.fragments.moviedetail.MovieDetailFragment"
         android:label="fragment_movie_detail"
         tools:layout="@layout/fragment_movie_detail" >
         <argument android:name="movieId"

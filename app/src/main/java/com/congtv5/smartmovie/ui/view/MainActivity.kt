@@ -9,11 +9,9 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.congtv5.smartmovie.R
-import com.congtv5.smartmovie.ui.base.BaseActivity
+import com.congtv5.smartmovie.ui.base.activity.BaseActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
 class MainActivity : BaseActivity() {
 
     private lateinit var navController: NavController
@@ -25,6 +23,7 @@ class MainActivity : BaseActivity() {
     }
 
     override fun onCreateActivity(savedInstanceState: Bundle?) {
+        screenComponent.inject(this)
     }
 
     override fun initBinding() {

@@ -1,7 +1,7 @@
 package com.congtv5.smartmovie.utils
 
 import androidx.fragment.app.Fragment
-import com.congtv5.smartmovie.data.model.movie.Genre
+import com.congtv5.domain.model.Genre
 import com.congtv5.smartmovie.ui.view.fragments.home.NowPlayingMovieFragment
 import com.congtv5.smartmovie.ui.view.fragments.home.PopularMovieFragment
 import com.congtv5.smartmovie.ui.view.fragments.home.TopRatedMovieFragment
@@ -44,8 +44,16 @@ fun formatMovieDurationToString(
 ): String {
     val movieDuration = formatTime(runtime)
     val releaseDate = formatDate(releaseDay)
-    val country = "(${productionCountry})"
+    val country = formatCountry(productionCountry)
     return listOf(releaseDate, country, movieDuration).joinToString(" ")
+}
+
+fun formatCountry(country: String): String{
+    return if(country.isNotBlank()){
+        "(${country})"
+    }else{
+        EMPTY_TEXT
+    }
 }
 
 fun formatDate(str: String): String {

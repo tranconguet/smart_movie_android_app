@@ -9,24 +9,19 @@ import android.widget.AbsListView
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.congtv5.domain.model.Movie
+import com.congtv5.domain.model.MovieListPage
 import com.congtv5.smartmovie.R
-import com.congtv5.smartmovie.data.model.pageresult.MovieListPage
-import com.congtv5.smartmovie.data.model.pageresult.Result
-import com.congtv5.smartmovie.ui.base.BaseFragment
+import com.congtv5.smartmovie.ui.base.fragment.BaseFragment
 import com.congtv5.smartmovie.ui.view.adapter.SearchResultListAdapter
 import com.congtv5.smartmovie.ui.view.fragments.home.HomeFragment
 import com.congtv5.smartmovie.ui.viewmodel.SearchViewModel
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
+import javax.inject.Inject
 
-
-@AndroidEntryPoint
 class SearchFragment : BaseFragment() {
 
     private lateinit var edtSearch: EditText
@@ -39,11 +34,16 @@ class SearchFragment : BaseFragment() {
     private var totalItemNumber = 0
     private var scrollOutItemNumber = 0
 
-    private val searchViewModel: SearchViewModel by viewModels()
+    @Inject
+    lateinit var searchViewModel: SearchViewModel
     private var searchListAdapter: SearchResultListAdapter? = null
 
     override fun getLayoutID(): Int {
         return R.layout.fragment_search
+    }
+
+    override fun initInjection() {
+        fragmentComponent.inject(this)
     }
 
     override fun initBinding(view: View) {
@@ -55,40 +55,34 @@ class SearchFragment : BaseFragment() {
     }
 
     override fun initObserveData() {
-        lifecycleScope.launchWhenResumed {
-            searchViewModel.resultListPages.collect { movieListPage ->
+
+        searchViewModel.store.observeAnyway(
+            owner = this,
+            selector = { state -> state.moviePages },
+            observer = { movieListPage ->
                 Log.d("CongTV5", "SearchFragment #initObserveData moviePage $movieListPage")
                 updateMovieList(movieListPage)
             }
-        }
+        )
 
-        lifecycleScope.launchWhenResumed {
-            searchViewModel.isLoadingMore.collect { isLoadingMore ->
-                loadingMore(isLoadingMore)
-            }
-        }
-
-        lifecycleScope.launchWhenResumed {
-            searchViewModel.isLoading.collect { isLoading ->
+        searchViewModel.store.observeAnyway(
+            owner = this,
+            selector = { state -> state.isLoading },
+            observer = { isLoading ->
+                Log.d("CongTV5", "SearchFragment #initObserveData isLoading $isLoading")
                 setProgressBar(isLoading)
             }
-        }
-    }
+        )
 
-    private fun setProgressBar(isLoading: Boolean) {
-        if (isLoading) {
-            prbSearch.visibility = View.VISIBLE
-        } else {
-            prbSearch.visibility = View.INVISIBLE
-        }
-    }
+        searchViewModel.store.observeAnyway(
+            owner = this,
+            selector = { state -> state.isLoadingMore },
+            observer = { isLoadingMore ->
+                Log.d("CongTV5", "SearchFragment #initObserveData isLoadingMore $isLoadingMore")
+                loadingMore(isLoadingMore)
+            }
+        )
 
-    private fun loadingMore(isLoadingMore: Boolean) {
-        if (isLoadingMore) {
-            prbLoadMore.visibility = View.VISIBLE
-        } else {
-            prbLoadMore.visibility = View.GONE
-        }
     }
 
     override fun initData() {
@@ -127,7 +121,6 @@ class SearchFragment : BaseFragment() {
     private fun searchMovie() {
         hideKeyboard()
         if (edtSearch.text.isNotEmpty()) {
-            Log.d("CongTV5", "SearchFragment #searchMoview searching ...")
             searchViewModel.clearResult()
             searchViewModel.setCurrentQuery(edtSearch.text.toString())
             searchViewModel.getNextMovieListPage()
@@ -143,7 +136,7 @@ class SearchFragment : BaseFragment() {
     }
 
     private fun updateMovieList(movieListPagers: List<MovieListPage>) {
-        val movieList = mutableListOf<Result>()
+        val movieList = mutableListOf<Movie>()
         movieListPagers.forEach { movieList.addAll(it.results) }
         searchListAdapter?.submitList(movieList)
     }
@@ -177,7 +170,7 @@ class SearchFragment : BaseFragment() {
                         ?: 0
                 }
                 if (scrollOutItemNumber != -1) {
-                    if (isLoadingMorePosition() && !searchViewModel.isLoadingMore.value) {
+                    if (isLoadingMorePosition() && !searchViewModel.store.state.isLoadingMore) {
                         searchViewModel.getNextMovieListPage()
                     }
                 }
@@ -187,12 +180,29 @@ class SearchFragment : BaseFragment() {
 
     private fun isLoadingMorePosition(): Boolean {
         // calculate correct position
-        val listOfMovieList = searchViewModel.resultListPages.value
+        val listOfMovieList = searchViewModel.store.state.moviePages
             .map { it.results.size }
         Log.d("CongTV5", "SearchFragment #isLoadingMorePosition $listOfMovieList")
         if (listOfMovieList.isEmpty()) return false
         totalItemNumber = listOfMovieList.reduce { accumulator, value -> accumulator + value }
         return isScrolling && scrollOutItemNumber + HomeFragment.GRID_ITEM_PER_ROW >= totalItemNumber
     }
+
+    private fun setProgressBar(isLoading: Boolean) {
+        if (isLoading) {
+            prbSearch.visibility = View.VISIBLE
+        } else {
+            prbSearch.visibility = View.INVISIBLE
+        }
+    }
+
+    private fun loadingMore(isLoadingMore: Boolean) {
+        if (isLoadingMore) {
+            prbLoadMore.visibility = View.VISIBLE
+        } else {
+            prbLoadMore.visibility = View.GONE
+        }
+    }
+
 
 }

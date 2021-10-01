@@ -10,9 +10,9 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.congtv5.domain.model.FavoriteMovie
+import com.congtv5.domain.model.Movie
 import com.congtv5.smartmovie.R
-import com.congtv5.smartmovie.data.database.entity.FavoriteMovieEntity
-import com.congtv5.smartmovie.data.model.pageresult.Result
 import com.congtv5.smartmovie.ui.view.adapter.diffutil.MovieDiffUtil
 import com.congtv5.smartmovie.utils.Constants.IMAGE_BASE_URL
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
@@ -20,19 +20,19 @@ import com.congtv5.smartmovie.utils.MovieItemDisplayType
 class MovieListAdapter(
     private val displayType: MovieItemDisplayType,
     private var onMovieClick: (Int) -> Unit,
-    private var onStarClick: (FavoriteMovieEntity) -> Unit,
+    private var onStarClick: (FavoriteMovie) -> Unit,
     private var isMovieFavorite: (Int) -> Boolean
-) : ListAdapter<Result, RecyclerView.ViewHolder>(MovieDiffUtil()) {
+) : ListAdapter<Movie, RecyclerView.ViewHolder>(MovieDiffUtil()) {
 
 
     class MovieGridItemViewHolder(
         view: View,
         private var onMovieClick: (Int) -> Unit,
-        private var onStarClick: (FavoriteMovieEntity) -> Unit,
+        private var onStarClick: (FavoriteMovie) -> Unit,
         private var isMovieFavorite: (Int) -> Boolean
     ) : RecyclerView.ViewHolder(view) {
 
-        private var movie: Result? = null
+        private var movie: Movie? = null
         private val layoutMovie = view.findViewById<ConstraintLayout>(R.id.layoutMovie)
         private val tvMovieName = view.findViewById<TextView>(R.id.tvMovieName)
         private val ivMovieImage = view.findViewById<ImageView>(R.id.ivMovieImage)
@@ -57,8 +57,7 @@ class MovieListAdapter(
                     }else{
                         ivStar.setImageResource(R.drawable.star_default)
                     }
-
-                    val favMovie = FavoriteMovieEntity(movie!!.id, !isFav)
+                    val favMovie = FavoriteMovie(movie!!.id, !isFav)
                     onStarClick.invoke(favMovie)
                 } else {
                     //handle null case
@@ -68,7 +67,7 @@ class MovieListAdapter(
 
         }
 
-        fun bind(movie: Result) {
+        fun bind(movie: Movie) {
             this.movie = movie
 
             tvMovieName.text = movie.title
@@ -80,7 +79,7 @@ class MovieListAdapter(
                 ivStar.setImageResource(R.drawable.star_default)
             }
 
-            val imageUrl = IMAGE_BASE_URL + movie.poster_path
+            val imageUrl = IMAGE_BASE_URL + movie.posterPath
             Glide.with(ivMovieImage)
                 .load(imageUrl)
                 .placeholder(R.drawable.ic_place_holder)
@@ -92,11 +91,11 @@ class MovieListAdapter(
     class MovieLinearItemViewHolder(
         view: View,
         private var onMovieClick: (Int) -> Unit,
-        private var onStarClick: (FavoriteMovieEntity) -> Unit,
+        private var onStarClick: (FavoriteMovie) -> Unit,
         private var isMovieFavorite: (Int) -> Boolean
     ) : RecyclerView.ViewHolder(view) {
 
-        private var movie: Result? = null
+        private var movie: Movie? = null
         private val layoutMovie = view.findViewById<ConstraintLayout>(R.id.layoutMovie)
         private val tvMovieName = view.findViewById<TextView>(R.id.tvMovieName)
         private val ivMovieImage = view.findViewById<ImageView>(R.id.ivMovieImage)
@@ -115,7 +114,13 @@ class MovieListAdapter(
             ivStar.setOnClickListener {
                 if (movie != null) {
                     val isFav = isMovieFavorite.invoke(movie!!.id)
-                    val favMovie = FavoriteMovieEntity(movie!!.id, !isFav)
+                    //set icon
+                    if(!isFav){
+                        ivStar.setImageResource(R.drawable.star_active)
+                    }else{
+                        ivStar.setImageResource(R.drawable.star_default)
+                    }
+                    val favMovie = FavoriteMovie(movie!!.id, !isFav)
                     onStarClick.invoke(favMovie)
                 } else {
                     //handle null case
@@ -124,7 +129,7 @@ class MovieListAdapter(
             }
         }
 
-        fun bind(movie: Result) {
+        fun bind(movie: Movie) {
             this.movie = movie
 
             val isFav = isMovieFavorite.invoke(movie.id)
@@ -136,7 +141,7 @@ class MovieListAdapter(
 
             tvMovieName.text = movie.title
 
-            val imageUrl = IMAGE_BASE_URL + movie.poster_path
+            val imageUrl = IMAGE_BASE_URL + movie.posterPath
             Glide.with(ivMovieImage)
                 .load(imageUrl)
                 .placeholder(R.drawable.ic_place_holder)

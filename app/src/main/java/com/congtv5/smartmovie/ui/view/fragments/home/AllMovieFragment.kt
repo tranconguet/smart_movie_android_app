@@ -1,30 +1,35 @@
 package com.congtv5.smartmovie.ui.view.fragments.home
 
 import android.view.View
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.congtv5.domain.Resource
+import com.congtv5.domain.model.FavoriteMovie
+import com.congtv5.domain.model.Movie
 import com.congtv5.smartmovie.R
-import com.congtv5.smartmovie.data.database.entity.FavoriteMovieEntity
-import com.congtv5.smartmovie.data.model.pageresult.Result
-import com.congtv5.smartmovie.data.model.ui.MovieSection
-import com.congtv5.smartmovie.ui.base.BaseFragment
+import com.congtv5.smartmovie.ui.base.fragment.BaseFragment
+import com.congtv5.smartmovie.ui.base.viewmodel.ViewModelFactory
 import com.congtv5.smartmovie.ui.view.adapter.MovieSectionListAdapter
-import com.congtv5.smartmovie.ui.viewmodel.AllMovieListViewModel
-import com.congtv5.smartmovie.ui.viewmodel.HomeViewModel
+import com.congtv5.smartmovie.ui.view.model.MovieSection
+import com.congtv5.smartmovie.ui.viewmodel.home.AllMovieListViewModel
+import com.congtv5.smartmovie.ui.viewmodel.home.HomeViewModel
 import com.congtv5.smartmovie.utils.MovieCategory
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
-import com.congtv5.smartmovie.utils.Resource
-import kotlinx.coroutines.flow.collect
+import javax.inject.Inject
 
 class AllMovieFragment : BaseFragment() {
 
-    private val homeViewModel: HomeViewModel by activityViewModels()
-    private val allMovieListViewModel: AllMovieListViewModel by viewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    private val homeViewModel: HomeViewModel by lazy {
+        ViewModelProvider(requireParentFragment(), viewModelFactory)[HomeViewModel::class.java]
+    }
+
+    @Inject
+    lateinit var allMovieListViewModel: AllMovieListViewModel
 
     private var movieGridListAdapter: MovieSectionListAdapter? = null
     private var movieLinearListAdapter: MovieSectionListAdapter? = null
@@ -36,6 +41,10 @@ class AllMovieFragment : BaseFragment() {
         return R.layout.fragment_all_movie
     }
 
+    override fun initInjection() {
+        fragmentComponent.inject(this)
+    }
+
     override fun initBinding(view: View) {
         rvMovieList = view.findViewById(R.id.rvMovieList)
         rlRefresh = view.findViewById(R.id.rlRefresh)
@@ -43,26 +52,32 @@ class AllMovieFragment : BaseFragment() {
 
     override fun initObserveData() {
 
-        lifecycleScope.launchWhenResumed {
-            allMovieListViewModel.isLoading.collect { isLoading ->
+        allMovieListViewModel.store.observeAnyway(
+            owner = this,
+            selector = { state -> state.isLoading },
+            observer = { isLoading ->
                 rlRefresh.isRefreshing = isLoading
             }
-        }
+        )
 
-        lifecycleScope.launchWhenResumed {
-            homeViewModel.allMovieSections.collect { sectionMap ->
+        homeViewModel.store.observeAnyway(
+            owner = this,
+            selector = { state -> state.movieSectionMap },
+            observer = { sectionMap ->
                 updateReloadingBarBySectionMap(sectionMap)
                 updateSections(sectionMap)
             }
-        }
+        )
 
-        lifecycleScope.launchWhenResumed {
-            homeViewModel.currentDisplayType.collect { type ->
+        homeViewModel.store.observeAnyway(
+            owner = this,
+            selector = { state -> state.currentDisplayType },
+            observer = { type ->
                 updateDisplayType(type)
             }
-        }
-    }
+        )
 
+    }
 
     override fun initData() {
     }
@@ -101,7 +116,7 @@ class AllMovieFragment : BaseFragment() {
             })
     }
 
-    private fun updateSections(sectionMap: Map<MovieCategory, Resource<List<Result>>?>) {
+    private fun updateSections(sectionMap: Map<MovieCategory, Resource<List<Movie>>?>) {
         // get success loaded section
         val sectionList = sectionMap.filter { item ->
             item.value is Resource.Success
@@ -123,21 +138,21 @@ class AllMovieFragment : BaseFragment() {
         }
     }
 
-    private fun updateFavoriteMovie(favoriteMovieEntity: FavoriteMovieEntity) {
-        homeViewModel.updateFavoriteMovie(favoriteMovieEntity)
+    private fun updateFavoriteMovie(favoriteMovie: FavoriteMovie) {
+        homeViewModel.updateFavoriteMovie(favoriteMovie)
     }
 
     private fun isMovieFavorite(movieId: Int): Boolean {
         return homeViewModel.isMovieFavorite(movieId)
     }
 
-    private fun reloadData(){
+    private fun reloadData() {
         allMovieListViewModel.setIsReloading(true)
         homeViewModel.clearAllData()
         homeViewModel.getMovieListToInitAllPage()
     }
 
-    private fun updateReloadingBarBySectionMap(allMovieSections: Map<MovieCategory, Resource<List<Result>>?>) {
+    private fun updateReloadingBarBySectionMap(allMovieSections: Map<MovieCategory, Resource<List<Movie>>?>) {
         // for loading
         val isLoadingDone = allMovieSections.filter { item ->
             item.value == null
@@ -153,7 +168,7 @@ class AllMovieFragment : BaseFragment() {
     }
 
     private fun goToOtherCategory(movieCategory: MovieCategory) {
-        homeViewModel.setCurrentPage(movieCategory)
+        homeViewModel.setCurrentPageType(movieCategory)
     }
 
 }

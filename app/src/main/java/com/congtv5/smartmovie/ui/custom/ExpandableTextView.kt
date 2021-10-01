@@ -10,8 +10,6 @@ class ExpandableTextView : androidx.appcompat.widget.AppCompatTextView, View.OnC
         private const val MAX_LINES = 3
     }
 
-    var isExpanded = false
-
     var myMaxLines = Int.MAX_VALUE
 
     constructor(context: Context) : super(context) {

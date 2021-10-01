@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/artistFragment"
-        android:name="com.congtv5.smartmovie.ui.view.fragments.ArtistFragment"
+        android:name="com.congtv5.smartmovie.ui.view.fragments.artist.ArtistFragment"
         android:label="fragment_artist"
         tools:layout="@layout/fragment_artist" />
 </navigation>

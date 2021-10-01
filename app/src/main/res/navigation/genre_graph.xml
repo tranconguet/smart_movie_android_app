@@ -7,7 +7,35 @@
 
     <fragment
         android:id="@+id/genreFragment"
-        android:name="com.congtv5.smartmovie.ui.view.fragments.GenreFragment"
+        android:name="com.congtv5.smartmovie.ui.view.fragments.genre.GenreFragment"
         android:label="fragment_genre"
-        tools:layout="@layout/fragment_genre" />
+        tools:layout="@layout/fragment_genre" >
+        <action
+            android:id="@+id/action_genreFragment_to_movieByGenreFragment"
+            app:destination="@id/movieByGenreFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/movieByGenreFragment"
+        android:name="com.congtv5.smartmovie.ui.view.fragments.genre.MovieByGenreFragment"
+        android:label="fragment_movie_by_genre"
+        tools:layout="@layout/fragment_movie_by_genre" >
+        <argument
+            android:name="genreId"
+            app:argType="integer" />
+        <argument
+            android:name="genreTitle"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_movieByGenreFragment_to_movieDetailFragment3"
+            app:destination="@id/movieDetailFragment3" />
+    </fragment>
+    <fragment
+        android:id="@+id/movieDetailFragment3"
+        android:name="com.congtv5.smartmovie.ui.view.fragments.moviedetail.MovieDetailFragment"
+        android:label="fragment_movie_detail"
+        tools:layout="@layout/fragment_movie_detail" >
+        <argument
+            android:name="movieId"
+            app:argType="integer" />
+    </fragment>
 </navigation>

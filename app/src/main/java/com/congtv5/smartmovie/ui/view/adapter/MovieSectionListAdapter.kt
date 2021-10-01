@@ -10,11 +10,11 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.congtv5.domain.model.FavoriteMovie
 import com.congtv5.smartmovie.R
-import com.congtv5.smartmovie.data.database.entity.FavoriteMovieEntity
-import com.congtv5.smartmovie.data.model.ui.MovieSection
 import com.congtv5.smartmovie.ui.view.adapter.diffutil.MovieSectionDiffUtil
 import com.congtv5.smartmovie.ui.view.fragments.home.HomeFragment.Companion.GRID_ITEM_PER_ROW
+import com.congtv5.smartmovie.ui.view.model.MovieSection
 import com.congtv5.smartmovie.utils.MovieCategory
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
 
@@ -22,7 +22,7 @@ class MovieSectionListAdapter(
     private val displayType: MovieItemDisplayType,
     private val onMovieClick: ((Int) -> Unit),
     private val onSectionTitleClick: ((MovieCategory) -> Unit),
-    private var onStarClick: (FavoriteMovieEntity) -> Unit,
+    private var onStarClick: (FavoriteMovie) -> Unit,
     private var isMovieFavorite: (Int) -> Boolean
 ) : ListAdapter<MovieSection, MovieSectionListAdapter.MovieSectionViewHolder>(MovieSectionDiffUtil()) {
 
@@ -32,7 +32,7 @@ class MovieSectionListAdapter(
         displayType: MovieItemDisplayType,
         onMovieClick: ((Int) -> Unit),
         onSectionTitleClick: ((MovieCategory) -> Unit),
-        onStarClick: (FavoriteMovieEntity) -> Unit,
+        onStarClick: (FavoriteMovie) -> Unit,
         isMovieFavorite: (Int) -> Boolean
     ) : RecyclerView.ViewHolder(view) {
 

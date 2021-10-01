@@ -1,15 +1,15 @@
 package com.congtv5.smartmovie.ui.view.adapter.diffutil
 
 import androidx.recyclerview.widget.DiffUtil
-import com.congtv5.smartmovie.data.model.pageresult.Result
+import com.congtv5.domain.model.Movie
 
-class MovieDiffUtil : DiffUtil.ItemCallback<Result>() {
+class MovieDiffUtil : DiffUtil.ItemCallback<Movie>() {
 
-    override fun areItemsTheSame(oldItem: Result, newItem: Result): Boolean {
+    override fun areItemsTheSame(oldItem: Movie, newItem: Movie): Boolean {
         return oldItem.id == newItem.id
     }
 
-    override fun areContentsTheSame(oldItem: Result, newItem: Result): Boolean {
+    override fun areContentsTheSame(oldItem: Movie, newItem: Movie): Boolean {
         return oldItem == newItem
     }
 

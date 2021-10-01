@@ -1,66 +1,68 @@
 package com.congtv5.smartmovie.ui.viewmodel
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.congtv5.smartmovie.data.model.castandcrewlist.Cast
-import com.congtv5.smartmovie.data.model.movie.MovieDetail
-import com.congtv5.smartmovie.data.repository.MovieRepository
-import com.congtv5.smartmovie.utils.Resource
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.congtv5.domain.Resource
+import com.congtv5.domain.usecase.GetCastAndCrewListUseCase
+import com.congtv5.domain.usecase.GetMovieDetailUseCase
+import com.congtv5.smartmovie.ui.base.viewmodel.BaseViewModel
+import com.congtv5.smartmovie.ui.viewstate.MovieDetailViewState
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@HiltViewModel
 class MovieDetailViewModel @Inject constructor(
-    private var movieRepository: MovieRepository,
-) : ViewModel() {
-    private val _movieDetail = MutableStateFlow<MovieDetail?>(null)
-    val movieDetail: StateFlow<MovieDetail?> = _movieDetail
+    private val getMovieDetailUseCase: GetMovieDetailUseCase,
+    private val getCastAndCrewListUseCase: GetCastAndCrewListUseCase
+) : BaseViewModel<MovieDetailViewState>() {
 
-    private val _casts = MutableStateFlow<List<Cast>>(listOf())
-    val casts: StateFlow<List<Cast>> = _casts
-
-    private val _isError = MutableStateFlow(false)
-    val isError: StateFlow<Boolean> = _isError
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    override fun initState(): MovieDetailViewState {
+        return MovieDetailViewState(
+            movieDetail = null,
+            casts = listOf(),
+            isMovieInfoLoading = false,
+            isCastLoading = false,
+            isError = false
+        )
+    }
 
     fun getMovieDetail(movieId: Int) {
         viewModelScope.launch {
-            setIsLoading(true)
+            setIsMovieInfoLoading(true)
+            setIsCastLoading(true)
             coroutineScope {
-                when (val result = movieRepository.getMovieDetails(movieId)) {
+                when (val result = getMovieDetailUseCase.execute(movieId)) {
                     is Resource.Success -> {
-                        _movieDetail.value = result.data
+                        store.dispatchState(newState = store.state.copy(movieDetail = result.data))
                     }
-                    else -> {
+                    is Resource.Error -> {
                         setIsError(true)
                     }
                 }
+                setIsMovieInfoLoading(false)
             }
             coroutineScope {
-                when (val result = movieRepository.getCastAndCrewList(movieId)) {
+                when (val result = getCastAndCrewListUseCase.execute(movieId)) {
                     is Resource.Success -> {
-                        _casts.value = result.data?.cast ?: listOf()
+                        store.dispatchState(newState = store.state.copy(casts = result.data?.casts ?: listOf()))
                     }
-                    else -> {
+                    is Resource.Error -> {
                         setIsError(true)
                     }
                 }
+                setIsCastLoading(false)
             }
-            setIsLoading(false)
         }
     }
 
-    fun setIsError(value: Boolean) {
-        _isError.value = value
+    private fun setIsError(value: Boolean) {
+        store.dispatchState(newState = store.state.copy(isError = value))
     }
 
-    fun setIsLoading(value: Boolean) {
-        _isLoading.value = value
+    private fun setIsMovieInfoLoading(value: Boolean) {
+        store.dispatchState(newState = store.state.copy(isMovieInfoLoading = value))
+    }
+
+    private fun setIsCastLoading(value: Boolean) {
+        store.dispatchState(newState = store.state.copy(isCastLoading = value))
     }
 }

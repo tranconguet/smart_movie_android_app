@@ -1,27 +1,51 @@
 package com.congtv5.smartmovie.ui.view.fragments.home
 
-import android.view.View
+import android.util.Log
+import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
+import com.congtv5.domain.model.MovieListPage
 import com.congtv5.smartmovie.R
-import com.congtv5.smartmovie.ui.base.BaseFragment
+import com.congtv5.smartmovie.ui.base.fragment.MovieListFragment
+import com.congtv5.smartmovie.ui.base.viewmodel.ViewModelFactory
+import com.congtv5.smartmovie.ui.viewmodel.home.HomeViewModel
+import com.congtv5.smartmovie.ui.viewmodel.home.NowPlayingListViewModel
+import javax.inject.Inject
 
-class NowPlayingMovieFragment : BaseFragment() {
+class NowPlayingMovieFragment : MovieListFragment() {
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    private val myHomeViewModel: HomeViewModel by lazy {
+        ViewModelProvider(requireParentFragment(), viewModelFactory)[HomeViewModel::class.java]
+    }
+
+    @Inject
+    lateinit var nowPlayingViewModel: NowPlayingListViewModel
 
     override fun getLayoutID(): Int {
         return R.layout.fragment_now_playing_movie
     }
 
-    override fun initBinding(view: View) {
+    override fun initInjection() {
+        fragmentComponent.inject(this)
     }
 
-    override fun initObserveData() {
+    override fun initViewModel() {
+        homeViewModel = myHomeViewModel
+        movieListViewModel = nowPlayingViewModel
     }
 
-    override fun initData() {
+    override fun getFirstMovieListPage(): MovieListPage? {
+        Log.d(
+            "CongTV5",
+            "NowPlayingMovieFragment #getFirstMovieListPage ${homeViewModel.store.state.nowPlayingMovieFirstPage}"
+        )
+        return homeViewModel.store.state.nowPlayingMovieFirstPage
     }
 
-    override fun initView() {
+    override fun goToMovieDetailPage(movieId: Int) {
+        val action = HomeFragmentDirections.actionHomeFragmentToMovieDetailFragment2(movieId)
+        findNavController().navigate(action)
     }
 
-    override fun initAction() {
-    }
 }

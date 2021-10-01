@@ -11,7 +11,7 @@
     android:layout_marginBottom="@dimen/genre_item_margin_margin_vertical">
 
     <ImageView
-        android:id="@+id/ivSearchItemImage"
+        android:id="@+id/ivGenreItemImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:ignore="ContentDescription"
@@ -24,12 +24,12 @@
         android:paddingTop="@dimen/search_item_title_padding"
         android:paddingStart="@dimen/search_item_title_padding"
         android:paddingBottom="@dimen/search_item_title_padding"
-        app:layout_constraintBottom_toBottomOf="@+id/ivSearchItemImage"
+        app:layout_constraintBottom_toBottomOf="@+id/ivGenreItemImage"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
         <TextView
-            android:id="@+id/tvSearchItemTitle"
+            android:id="@+id/tvGenreItemTitle"
             android:layout_width="@dimen/search_item_title_text_width"
             android:layout_height="wrap_content"
             android:background="@color/white"
@@ -56,7 +56,7 @@
             android:textSize="@dimen/search_item_genres_text_size"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvSearchItemTitle"
+            app:layout_constraintTop_toBottomOf="@+id/tvGenreItemTitle"
             tools:ignore="RtlSymmetry" />
 
         <RatingBar

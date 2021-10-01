@@ -1,38 +1,40 @@
 package com.congtv5.smartmovie.ui.view.fragments.home
 
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.widget.ViewPager2
+import com.congtv5.domain.Resource
+import com.congtv5.domain.model.Movie
 import com.congtv5.smartmovie.R
-import com.congtv5.smartmovie.data.model.pageresult.Result
-import com.congtv5.smartmovie.ui.base.BaseFragment
+import com.congtv5.smartmovie.ui.base.fragment.BaseFragment
+import com.congtv5.smartmovie.ui.base.viewmodel.ViewModelFactory
 import com.congtv5.smartmovie.ui.view.adapter.MovieListTypePagerAdapter
-import com.congtv5.smartmovie.ui.viewmodel.HomeViewModel
+import com.congtv5.smartmovie.ui.viewmodel.home.HomeViewModel
 import com.congtv5.smartmovie.utils.Constants.MOVIES_TEXT
 import com.congtv5.smartmovie.utils.MovieCategory
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
-import com.congtv5.smartmovie.utils.Resource
 import com.congtv5.smartmovie.utils.getFragmentByMovieCategory
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
+import javax.inject.Inject
 
-@AndroidEntryPoint
 class HomeFragment : BaseFragment() {
 
     companion object {
         const val GRID_ITEM_PER_ROW = 2
     }
 
-    private val homeViewModel: HomeViewModel by activityViewModels()
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    private val homeViewModel: HomeViewModel by lazy {
+        ViewModelProvider(this, viewModelFactory)[HomeViewModel::class.java]
+    }
+
     private var successLoadingCategories = mutableListOf<MovieCategory>()
 
     private lateinit var tabLayout: TabLayout
@@ -47,6 +49,10 @@ class HomeFragment : BaseFragment() {
         return R.layout.fragment_home
     }
 
+    override fun initInjection() {
+        fragmentComponent.inject(this)
+    }
+
     override fun initBinding(view: View) {
         tabLayout = view.findViewById(R.id.tlHome)
         viewPager = view.findViewById(R.id.vpHome)
@@ -59,30 +65,37 @@ class HomeFragment : BaseFragment() {
 
     override fun initObserveData() {
 
-        lifecycleScope.launchWhenResumed {
-            homeViewModel.isLoading.collect { isLoading ->
+        homeViewModel.store.observe(
+            owner = this,
+            selector = { state -> state.isLoading },
+            observer = { isLoading ->
                 setUpProgressBar(isLoading)
             }
-        }
+        )
 
-        lifecycleScope.launchWhenResumed {
-            homeViewModel.isError.collect { isError ->
-                Log.d("CongTV5","$$isError")
+        homeViewModel.store.observe(
+            owner = this,
+            selector = { state -> state.isError },
+            observer = { isError ->
                 setUpError(isError)
             }
-        }
+        )
 
-        lifecycleScope.launchWhenResumed {
-            homeViewModel.allMovieSections.collect { allMovieSections ->
-                updateLoadingProgressBarBySectionMap(allMovieSections)
-                updateIsErrorBySectionMap(allMovieSections)
-                updateMovieSectionTab(allMovieSections)
+        homeViewModel.store.observe(
+            owner = this,
+            selector = { state -> state.movieSectionMap },
+            observer = { movieSectionMap ->
+                updateLoadingProgressBarBySectionMap(movieSectionMap)
+                updateIsErrorBySectionMap(movieSectionMap)
+                updateMovieSectionTab(movieSectionMap)
             }
-        }
+        )
 
-        lifecycleScope.launchWhenResumed {
-            homeViewModel.currentDisplayType.collect { type ->
-                when (type) {
+        homeViewModel.store.observe(
+            owner = this,
+            selector = { state -> state.currentDisplayType },
+            observer = { type ->
+                when (type!!) {
                     MovieItemDisplayType.GRID -> {
                         ivDisplayType.setImageResource(R.drawable.linear_display)
                     }
@@ -91,13 +104,14 @@ class HomeFragment : BaseFragment() {
                     }
                 }
             }
-        }
+        )
 
-        lifecycleScope.launchWhenResumed {
-            homeViewModel.currentPage.collect { movieCategory ->
-                Log.d("CongTV5", "HomeFragment #observeData currentPage change to $movieCategory")
+        homeViewModel.store.observe(
+            owner = this,
+            selector = { state -> state.currentPageType },
+            observer = { movieCategory ->
                 if (movieCategory == null) {
-                    viewPager.currentItem = 0 // return all movies page
+                    viewPager.currentItem = 0 // navigate to allMovies page
                 } else {
                     val pageIndex = successLoadingCategories.indexOf(movieCategory)
                     if (pageIndex >= 0) {
@@ -105,7 +119,8 @@ class HomeFragment : BaseFragment() {
                     }
                 }
             }
-        }
+        )
+
     }
 
     override fun initData() {
@@ -125,7 +140,7 @@ class HomeFragment : BaseFragment() {
         }
     }
 
-    private fun updateLoadingProgressBarBySectionMap(allMovieSections: Map<MovieCategory, Resource<List<Result>>?>) {
+    private fun updateLoadingProgressBarBySectionMap(allMovieSections: Map<MovieCategory, Resource<List<Movie>>?>) {
         // for loading
         val isLoadingDone = allMovieSections.filter { item ->
             item.value == null
@@ -133,7 +148,7 @@ class HomeFragment : BaseFragment() {
         if (isLoadingDone) homeViewModel.setIsLoading(false)
     }
 
-    private fun updateIsErrorBySectionMap(allMovieSections: Map<MovieCategory, Resource<List<Result>>?>) {
+    private fun updateIsErrorBySectionMap(allMovieSections: Map<MovieCategory, Resource<List<Movie>>?>) {
         // for loading
         val isLoadingDone = allMovieSections.filter { item ->
             item.value == null
@@ -144,7 +159,7 @@ class HomeFragment : BaseFragment() {
         if (isLoadingDone && isError) homeViewModel.setIsError(true)
     }
 
-    private fun updateMovieSectionTab(allMovieSections: Map<MovieCategory, Resource<List<Result>>?>) {
+    private fun updateMovieSectionTab(allMovieSections: Map<MovieCategory, Resource<List<Movie>>?>) {
         // prepare data to show
         // movies tab is default
         val fragments = mutableListOf<Fragment>(AllMovieFragment())
@@ -165,7 +180,7 @@ class HomeFragment : BaseFragment() {
             fragmentNames.add(movieCategory.text)
         }
 
-        if (fragments.size > 1 && !homeViewModel.isLoading.value) { //at least 1 page call success
+        if (fragments.size > 1 && !homeViewModel.store.state.isLoading) { //at least 1 page call success
             initViewPager(fragments, fragmentNames)
             showAllPage()
         }
@@ -177,7 +192,7 @@ class HomeFragment : BaseFragment() {
     }
 
     private fun reloadInitData() {
-        if (homeViewModel.isError.value) {
+        if (homeViewModel.store.state.isError) {
             homeViewModel.setIsError(false)
             loadInitData()
         }
@@ -214,10 +229,10 @@ class HomeFragment : BaseFragment() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 if (position == 0) {
-                    homeViewModel.setCurrentPage(null)
+                    homeViewModel.setCurrentPageType(null)
                 } else {
                     val currentPage = successLoadingCategories[position - 1]
-                    homeViewModel.setCurrentPage(currentPage)
+                    homeViewModel.setCurrentPageType(currentPage)
                 }
             }
         })
@@ -227,7 +242,7 @@ class HomeFragment : BaseFragment() {
     }
 
     private fun toggleDisplayType() {
-        if (homeViewModel.currentDisplayType.value == MovieItemDisplayType.GRID) {
+        if (homeViewModel.store.state.currentDisplayType == MovieItemDisplayType.GRID) {
             homeViewModel.setDisplayType(MovieItemDisplayType.VERTICAL_LINEAR)
         } else {
             homeViewModel.setDisplayType(MovieItemDisplayType.GRID)
