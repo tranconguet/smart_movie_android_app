@@ -23,18 +23,14 @@ abstract class BaseViewModel<S : Any> : ViewModel() {
         dispatchError(exception)
     }
 
-    protected fun dispatchError(error: Throwable) {
+    private fun dispatchError(error: Throwable) {
         _errorLiveEvent.value = error
-    }
-
-    protected fun dispatchState(state: S) {
-        store.dispatchState(newState = state)
     }
 
     abstract fun initState(): S
 
     override fun onCleared() {
-        Log.d("test","onCleared")
+        Log.d("test", "onCleared")
         super.onCleared()
     }
 }
