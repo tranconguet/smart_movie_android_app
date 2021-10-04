@@ -8,7 +8,7 @@ import javax.inject.Inject
 class GetFavoriteMovieListUseCase @Inject constructor(
     private val favoriteMovieRepository: FavoriteMovieRepository
 ) {
-    fun execute(): Flow<List<FavoriteMovie>> {
+    suspend fun execute(): Flow<List<FavoriteMovie>> {
         return favoriteMovieRepository.getFavoriteMovieList()
     }
 }

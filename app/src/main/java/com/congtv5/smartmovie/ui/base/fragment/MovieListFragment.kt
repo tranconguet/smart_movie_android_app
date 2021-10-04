@@ -1,9 +1,9 @@
 package com.congtv5.smartmovie.ui.base.fragment
 
-import android.util.Log
 import android.view.View
 import android.widget.AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL
 import android.widget.ProgressBar
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -17,6 +17,7 @@ import com.congtv5.smartmovie.ui.view.adapter.MovieListAdapter
 import com.congtv5.smartmovie.ui.view.fragments.home.HomeFragment.Companion.GRID_ITEM_PER_ROW
 import com.congtv5.smartmovie.ui.viewmodel.home.HomeViewModel
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
+import kotlinx.coroutines.flow.collect
 
 abstract class MovieListFragment : BaseFragment() {
 
@@ -26,8 +27,8 @@ abstract class MovieListFragment : BaseFragment() {
     private lateinit var rvMovieList: RecyclerView
     private lateinit var prbLoadMore: ProgressBar
     private lateinit var rlRefresh: SwipeRefreshLayout
-
-    private var isScrolling = false // for load more
+    // calculate for load more
+    private var isScrolling = false
     private var totalItemNumber = 0
     private var scrollOutItemNumber = 0
 
@@ -37,9 +38,6 @@ abstract class MovieListFragment : BaseFragment() {
     private var gridLayoutManager: GridLayoutManager? = null
     private var linearLayoutManager: LinearLayoutManager? = null
 
-    //    override fun getLayoutID(): Int {
-//        return R.layout.fragment_popular_movie
-//    }
     abstract fun initViewModel()
     abstract fun getFirstMovieListPage(): MovieListPage?
     abstract fun goToMovieDetailPage(movieId: Int)
@@ -52,53 +50,55 @@ abstract class MovieListFragment : BaseFragment() {
 
     override fun initObserveData() {
         initViewModel()
-        //shared viewModel to change displayType
-        homeViewModel.store.observe(
-            owner = this,
+        // shared viewModel to change displayType
+        homeViewModel.store.observeAnyway(
+            owner = viewLifecycleOwner,
             selector = { state -> state.currentDisplayType },
             observer = { type ->
                 updateDisplayType(type)
             }
         )
+        // listen favorite List from db change
+        lifecycleScope.launchWhenStarted {
+            homeViewModel.store.state.favoriteList?.collect { list ->
+                homeViewModel.setFavoriteList(list) // update fav list to db
+                movieListViewModel.applyFavoriteToAllMovie(list) // apply fav list from db to movie list from network
+            }
+        }
 
-        movieListViewModel.store.observe(
-            owner = this,
+        movieListViewModel.store.observeAnyway(
+            owner = viewLifecycleOwner,
+            selector = { state -> state.movieListPages },
+            observer = { movieListPagers ->
+                updateMovieList(movieListPagers)
+            }
+        )
+
+        movieListViewModel.store.observeAnyway(
+            owner = viewLifecycleOwner,
             selector = { state -> state.isReloading },
             observer = { isReloading ->
                 if (!isReloading) rlRefresh.isRefreshing = false
             }
         )
 
-        movieListViewModel.store.observe(
-            owner = this,
+        movieListViewModel.store.observeAnyway(
+            owner = viewLifecycleOwner,
             selector = { state -> state.isLoadingMore },
             observer = { isLoadingMore ->
-                loadingMore(isLoadingMore)
+                handleLoadingMore(isLoadingMore)
             }
         )
 
-        movieListViewModel.store.observe(
-            owner = this,
-            selector = { state -> state.movieListPages },
-            observer = { movieListPagers ->
-                updateMovieList(movieListPagers)
-            }
-        )
-    }
-
-    private fun loadingMore(isLoadingMore: Boolean) {
-        if (isLoadingMore) {
-            prbLoadMore.visibility = View.VISIBLE
-        } else {
-            prbLoadMore.visibility = View.GONE
-        }
     }
 
     override fun initData() {
-        // get item from first load
-        getFirstMovieListPage()?.let { movieListPage ->
-            movieListViewModel.addMovieListPage(movieListPage)
-            movieListViewModel.setCurrentPage(1)
+        // get item from home page
+        if (movieListViewModel.store.state.currentPage == 0) {
+            getFirstMovieListPage()?.let { movieListPage ->
+                movieListViewModel.addMovieListPage(movieListPage)
+                movieListViewModel.setCurrentPage(1)
+            }
         }
     }
 
@@ -111,13 +111,6 @@ abstract class MovieListFragment : BaseFragment() {
         rlRefresh.setOnRefreshListener {
             reloadData()
         }
-    }
-
-    private fun reloadData() {
-        initScrollAction()
-        movieListViewModel.clearData()
-        movieListViewModel.setIsReloading(true)
-        movieListViewModel.getNextMovieListPage()
     }
 
     private fun initScrollAction() {
@@ -140,10 +133,12 @@ abstract class MovieListFragment : BaseFragment() {
                 }
                 if (scrollOutItemNumber != -1) {
                     if (isLoadingMorePosition() && !movieListViewModel.store.state.isLoadingMore) {
+                        // trigger load more
                         movieListViewModel.getNextMovieListPage()
                     }
                 }
             }
+
         })
     }
 
@@ -151,14 +146,46 @@ abstract class MovieListFragment : BaseFragment() {
         // calculate correct position
         val listOfMovieList = movieListViewModel.store.state.movieListPages
             .map { it.results.size }
-        Log.d("CongTV5", "MovieListFragment #isLoadingMorePosition $listOfMovieList")
         if (listOfMovieList.isEmpty()) return false
         totalItemNumber = listOfMovieList.reduce { accumulator, value -> accumulator + value }
         return isScrolling && scrollOutItemNumber + GRID_ITEM_PER_ROW >= totalItemNumber
     }
 
+    private fun initMovieListAdapter() {
+        movieGridListAdapter =
+            MovieListAdapter(MovieItemDisplayType.GRID, { movieId: Int ->
+                goToMovieDetailPage(movieId)
+            }, { favMovie ->
+                updateFavoriteMovie(favMovie)
+            }, { movieId ->
+                isMovieFavorite(movieId)
+            })
+        movieLinearListAdapter =
+            MovieListAdapter(MovieItemDisplayType.VERTICAL_LINEAR, { movieId: Int ->
+                goToMovieDetailPage(movieId)
+            }, { favMovie ->
+                updateFavoriteMovie(favMovie)
+            }, { movieId ->
+                isMovieFavorite(movieId)
+            })
+        gridLayoutManager = GridLayoutManager(context, GRID_ITEM_PER_ROW)
+        linearLayoutManager = LinearLayoutManager(context)
+    }
+
+    private fun reloadData() {
+        movieListViewModel.clearData()
+        movieListViewModel.getNextMovieListPage()
+    }
+
+    private fun handleLoadingMore(isLoadingMore: Boolean) {
+        if (isLoadingMore) {
+            prbLoadMore.visibility = View.VISIBLE
+        } else {
+            prbLoadMore.visibility = View.GONE
+        }
+    }
+
     private fun updateDisplayType(type: MovieItemDisplayType) {
-        Log.d("CongTV5", "MovieListFragment #updateDisplayType $type")
         when (type) {
             MovieItemDisplayType.GRID -> {
                 rvMovieList.adapter = movieGridListAdapter
@@ -185,33 +212,4 @@ abstract class MovieListFragment : BaseFragment() {
     private fun isMovieFavorite(movieId: Int): Boolean {
         return homeViewModel.isMovieFavorite(movieId)
     }
-
-    private fun initMovieListAdapter() {
-        context?.let { context ->
-            movieGridListAdapter =
-                MovieListAdapter(MovieItemDisplayType.GRID, { movieId: Int ->
-                    goToMovieDetailPage(movieId)
-                }, { favMovie ->
-                    updateFavoriteMovie(favMovie)
-                }, { movieId ->
-                    isMovieFavorite(movieId)
-                })
-            movieLinearListAdapter =
-                MovieListAdapter(MovieItemDisplayType.VERTICAL_LINEAR, { movieId: Int ->
-                    goToMovieDetailPage(movieId)
-                }, { favMovie ->
-                    updateFavoriteMovie(favMovie)
-                }, { movieId ->
-                    isMovieFavorite(movieId)
-                })
-
-            gridLayoutManager = GridLayoutManager(context, GRID_ITEM_PER_ROW)
-            linearLayoutManager = LinearLayoutManager(context)
-        }
-    }
-
-//    private fun goToMovieDetailPage(movieId: Int) {
-//        val action = HomeFragmentDirections.actionHomeFragmentToMovieDetailFragment2(movieId)
-//        findNavController().navigate(action)
-//    }
 }

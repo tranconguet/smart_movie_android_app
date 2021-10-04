@@ -1,5 +1,6 @@
 package com.congtv5.smartmovie.ui.view.fragments.home
 
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -18,7 +19,6 @@ import com.congtv5.smartmovie.ui.viewmodel.home.HomeViewModel
 import com.congtv5.smartmovie.utils.Constants.MOVIES_TEXT
 import com.congtv5.smartmovie.utils.MovieCategory
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
-import com.congtv5.smartmovie.utils.getFragmentByMovieCategory
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import javax.inject.Inject
@@ -124,7 +124,8 @@ class HomeFragment : BaseFragment() {
     }
 
     override fun initData() {
-        homeViewModel.getFavoriteList()
+        Log.d("CongTV5", "HomeFragment #initData() called")
+        homeViewModel.getMovieListToInitAllPage()
     }
 
     override fun initView() {
@@ -134,7 +135,6 @@ class HomeFragment : BaseFragment() {
         tvReload.setOnClickListener {
             reloadInitData()
         }
-
         ivDisplayType.setOnClickListener {
             toggleDisplayType()
         }
@@ -161,9 +161,8 @@ class HomeFragment : BaseFragment() {
 
     private fun updateMovieSectionTab(allMovieSections: Map<MovieCategory, Resource<List<Movie>>?>) {
         // prepare data to show
-        // movies tab is default
         val fragments = mutableListOf<Fragment>(AllMovieFragment())
-        val fragmentNames = mutableListOf(MOVIES_TEXT)
+        val fragmentNames = mutableListOf(MOVIES_TEXT) // movies tab is default
         val movieCategories = mutableListOf<MovieCategory>()
 
         val successLoadingCategory = allMovieSections.filter { item ->
@@ -172,24 +171,15 @@ class HomeFragment : BaseFragment() {
         successLoadingCategory.keys.forEach { movieCategory ->
             fragments.add(getFragmentByMovieCategory(movieCategory))
             movieCategories.add(movieCategory)
-        }
-
-        successLoadingCategories = movieCategories
-
-        successLoadingCategory.keys.forEach { movieCategory ->
             fragmentNames.add(movieCategory.text)
         }
 
-        if (fragments.size > 1 && !homeViewModel.store.state.isLoading) { //at least 1 page call success
+        successLoadingCategories = movieCategories
+        if (fragments.size > 1) { //at least 1 page call success
             initViewPager(fragments, fragmentNames)
-            showAllPage()
         }
-
     }
 
-    private fun showAllPage() {
-        layoutHome.visibility = View.VISIBLE
-    }
 
     private fun reloadInitData() {
         if (homeViewModel.store.state.isError) {
@@ -216,8 +206,10 @@ class HomeFragment : BaseFragment() {
     private fun setUpProgressBar(isLoading: Boolean) {
         if (isLoading) {
             prbMain.visibility = View.VISIBLE
+            layoutHome.visibility = View.INVISIBLE
         } else {
             prbMain.visibility = View.INVISIBLE
+            layoutHome.visibility = View.VISIBLE
         }
     }
 
@@ -231,8 +223,10 @@ class HomeFragment : BaseFragment() {
                 if (position == 0) {
                     homeViewModel.setCurrentPageType(null)
                 } else {
-                    val currentPage = successLoadingCategories[position - 1]
-                    homeViewModel.setCurrentPageType(currentPage)
+                    if(successLoadingCategories.size > position){
+                        val currentPage = successLoadingCategories[position - 1]
+                        homeViewModel.setCurrentPageType(currentPage)
+                    }
                 }
             }
         })
@@ -243,9 +237,18 @@ class HomeFragment : BaseFragment() {
 
     private fun toggleDisplayType() {
         if (homeViewModel.store.state.currentDisplayType == MovieItemDisplayType.GRID) {
-            homeViewModel.setDisplayType(MovieItemDisplayType.VERTICAL_LINEAR)
+            homeViewModel.setDisplayType(MovieItemDisplayType.VERTICAL_LINEAR, homeViewModel.store.state.isLoading)
         } else {
-            homeViewModel.setDisplayType(MovieItemDisplayType.GRID)
+            homeViewModel.setDisplayType(MovieItemDisplayType.GRID, homeViewModel.store.state.isLoading)
+        }
+    }
+
+    private fun getFragmentByMovieCategory(movieCategory: MovieCategory): Fragment {
+        return when (movieCategory) {
+            MovieCategory.POPULAR -> PopularMovieFragment()
+            MovieCategory.TOP_RATED -> TopRatedMovieFragment()
+            MovieCategory.UP_COMING -> UpComingMovieFragment()
+            MovieCategory.NOW_PLAYING -> NowPlayingMovieFragment()
         }
     }
 

@@ -6,9 +6,7 @@ import com.congtv5.data.utils.DispatcherProvider
 import com.congtv5.domain.model.FavoriteMovie
 import com.congtv5.domain.repository.FavoriteMovieRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 class FavoriteMovieRepositoryImpl(
@@ -17,11 +15,13 @@ class FavoriteMovieRepositoryImpl(
     private val favoriteMovieMapper: FavoriteMovieMapper,
 ) : FavoriteMovieRepository {
 
-    override fun getFavoriteMovieList(): Flow<List<FavoriteMovie>> = flow {
-        favoriteMovieDao.getFavoriteMovie().collect { list ->
-            emit(favoriteMovieMapper.map(list))
+    override suspend fun getFavoriteMovieList(): Flow<List<FavoriteMovie>> {
+        return withContext(dispatcherProvider.io) {
+            favoriteMovieDao.getFavoriteMovie().map { list ->
+                favoriteMovieMapper.map(list)
+            }
         }
-    }.flowOn(dispatcherProvider.io)
+    }
 
     override suspend fun getIsFavoriteMovie(movieId: Int): Boolean {
         return withContext(dispatcherProvider.io) {

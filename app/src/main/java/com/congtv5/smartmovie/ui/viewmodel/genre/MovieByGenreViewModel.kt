@@ -1,7 +1,5 @@
 package com.congtv5.smartmovie.ui.viewmodel.genre
 
-import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.congtv5.domain.Resource
 import com.congtv5.domain.model.MovieListPage
@@ -14,10 +12,8 @@ class MovieByGenreViewModel @Inject constructor(
 ) : BaseMovieListViewModel() {
 
     private var _genreId = MutableLiveData(0)
-    val genreId: LiveData<Int> = _genreId
 
     override suspend fun getMovieListPage(page: Int): Resource<MovieListPage> {
-        Log.d("CongTV5", "MovieByGenreViewModel #getMovieListPage $page ${_genreId.value}")
         return getMovieListPageByGenreUseCase.execute(_genreId.value ?: 0, page)
     }
 

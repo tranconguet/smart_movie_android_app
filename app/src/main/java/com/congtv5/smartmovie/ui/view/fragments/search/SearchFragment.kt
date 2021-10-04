@@ -1,7 +1,6 @@
 package com.congtv5.smartmovie.ui.view.fragments.search
 
 import android.app.Activity
-import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
@@ -51,7 +50,7 @@ class SearchFragment : BaseFragment() {
         tvCancel = view.findViewById(R.id.tvCancel)
         rvSearchResultList = view.findViewById(R.id.rvSearchResultList)
         prbLoadMore = view.findViewById(R.id.prbLoadMore)
-        prbSearch = view.findViewById(R.id.prbSearch)
+        prbSearch = view.findViewById(R.id.prbLoading)
     }
 
     override fun initObserveData() {
@@ -60,7 +59,6 @@ class SearchFragment : BaseFragment() {
             owner = this,
             selector = { state -> state.moviePages },
             observer = { movieListPage ->
-                Log.d("CongTV5", "SearchFragment #initObserveData moviePage $movieListPage")
                 updateMovieList(movieListPage)
             }
         )
@@ -69,7 +67,6 @@ class SearchFragment : BaseFragment() {
             owner = this,
             selector = { state -> state.isLoading },
             observer = { isLoading ->
-                Log.d("CongTV5", "SearchFragment #initObserveData isLoading $isLoading")
                 setProgressBar(isLoading)
             }
         )
@@ -78,7 +75,6 @@ class SearchFragment : BaseFragment() {
             owner = this,
             selector = { state -> state.isLoadingMore },
             observer = { isLoadingMore ->
-                Log.d("CongTV5", "SearchFragment #initObserveData isLoadingMore $isLoadingMore")
                 loadingMore(isLoadingMore)
             }
         )
@@ -95,14 +91,18 @@ class SearchFragment : BaseFragment() {
 
     private fun initAdapter() {
         rvSearchResultList.layoutManager = LinearLayoutManager(context)
-        searchListAdapter =
-            SearchResultListAdapter({ movieId: Int -> goToMovieDetailPage(movieId) }, { id ->
-                getGenreNameById(id)
+        searchListAdapter = SearchResultListAdapter(
+            { movieId: Int ->
+                goToMovieDetailPage(movieId) // navigate to detail
+            },
+            { id ->
+                getGenreNameById(id) // for display genres
             })
         rvSearchResultList.adapter = searchListAdapter
     }
 
     override fun initAction() {
+        initScrollAction()
         edtSearch.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 searchMovie()
@@ -115,7 +115,6 @@ class SearchFragment : BaseFragment() {
             hideKeyboard()
             clearEditText()
         }
-        initScrollAction()
     }
 
     private fun searchMovie() {
@@ -182,7 +181,6 @@ class SearchFragment : BaseFragment() {
         // calculate correct position
         val listOfMovieList = searchViewModel.store.state.moviePages
             .map { it.results.size }
-        Log.d("CongTV5", "SearchFragment #isLoadingMorePosition $listOfMovieList")
         if (listOfMovieList.isEmpty()) return false
         totalItemNumber = listOfMovieList.reduce { accumulator, value -> accumulator + value }
         return isScrolling && scrollOutItemNumber + HomeFragment.GRID_ITEM_PER_ROW >= totalItemNumber

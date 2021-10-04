@@ -6,6 +6,7 @@ import com.congtv5.domain.usecase.GetCastAndCrewListUseCase
 import com.congtv5.domain.usecase.GetMovieDetailUseCase
 import com.congtv5.smartmovie.ui.base.viewmodel.BaseViewModel
 import com.congtv5.smartmovie.ui.viewstate.MovieDetailViewState
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -14,6 +15,8 @@ class MovieDetailViewModel @Inject constructor(
     private val getMovieDetailUseCase: GetMovieDetailUseCase,
     private val getCastAndCrewListUseCase: GetCastAndCrewListUseCase
 ) : BaseViewModel<MovieDetailViewState>() {
+
+    private var loadMovieDetail: Job? = null
 
     override fun initState(): MovieDetailViewState {
         return MovieDetailViewState(
@@ -26,9 +29,12 @@ class MovieDetailViewModel @Inject constructor(
     }
 
     fun getMovieDetail(movieId: Int) {
-        viewModelScope.launch {
+        loadMovieDetail?.cancel()
+        loadMovieDetail = viewModelScope.launch {
             setIsMovieInfoLoading(true)
             setIsCastLoading(true)
+            setIsError(false)
+
             coroutineScope {
                 when (val result = getMovieDetailUseCase.execute(movieId)) {
                     is Resource.Success -> {
@@ -40,10 +46,15 @@ class MovieDetailViewModel @Inject constructor(
                 }
                 setIsMovieInfoLoading(false)
             }
+
             coroutineScope {
                 when (val result = getCastAndCrewListUseCase.execute(movieId)) {
                     is Resource.Success -> {
-                        store.dispatchState(newState = store.state.copy(casts = result.data?.casts ?: listOf()))
+                        store.dispatchState(
+                            newState = store.state.copy(
+                                casts = result.data?.casts ?: listOf()
+                            )
+                        )
                     }
                     is Resource.Error -> {
                         setIsError(true)
@@ -51,6 +62,7 @@ class MovieDetailViewModel @Inject constructor(
                 }
                 setIsCastLoading(false)
             }
+
         }
     }
 
@@ -64,5 +76,10 @@ class MovieDetailViewModel @Inject constructor(
 
     private fun setIsCastLoading(value: Boolean) {
         store.dispatchState(newState = store.state.copy(isCastLoading = value))
+    }
+
+    override fun onCleared() {
+        loadMovieDetail?.cancel()
+        super.onCleared()
     }
 }

@@ -2,6 +2,7 @@ package com.congtv5.smartmovie.ui.view.fragments.home
 
 import android.view.View
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,6 +19,7 @@ import com.congtv5.smartmovie.ui.viewmodel.home.AllMovieListViewModel
 import com.congtv5.smartmovie.ui.viewmodel.home.HomeViewModel
 import com.congtv5.smartmovie.utils.MovieCategory
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
+import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
 class AllMovieFragment : BaseFragment() {
@@ -52,14 +54,6 @@ class AllMovieFragment : BaseFragment() {
 
     override fun initObserveData() {
 
-        allMovieListViewModel.store.observeAnyway(
-            owner = this,
-            selector = { state -> state.isLoading },
-            observer = { isLoading ->
-                rlRefresh.isRefreshing = isLoading
-            }
-        )
-
         homeViewModel.store.observeAnyway(
             owner = this,
             selector = { state -> state.movieSectionMap },
@@ -77,6 +71,21 @@ class AllMovieFragment : BaseFragment() {
             }
         )
 
+        // listen favorite List from db change
+        lifecycleScope.launchWhenStarted {
+            homeViewModel.store.state.favoriteList?.collect { list ->
+                homeViewModel.setFavoriteList(list) // update fav list
+                homeViewModel.applyFavoriteToAllMovie(list) // apply fav list to movie list from network
+            }
+        }
+
+        allMovieListViewModel.store.observeAnyway(
+            owner = this,
+            selector = { state -> state.isLoading },
+            observer = { isLoading ->
+                rlRefresh.isRefreshing = isLoading
+            }
+        )
     }
 
     override fun initData() {
@@ -148,7 +157,6 @@ class AllMovieFragment : BaseFragment() {
 
     private fun reloadData() {
         allMovieListViewModel.setIsReloading(true)
-        homeViewModel.clearAllData()
         homeViewModel.getMovieListToInitAllPage()
     }
 

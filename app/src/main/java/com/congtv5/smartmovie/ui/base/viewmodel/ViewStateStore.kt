@@ -1,6 +1,5 @@
 package com.congtv5.smartmovie.ui.base.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.*
 
 class ViewStateStore<T>(
@@ -31,7 +30,6 @@ class ViewStateStore<T>(
     }
 
     fun dispatchState(newState: T) {
-        Log.d("CongTV5", "ViewStateStore #dispatchState dispatch state")
         stateLiveData.value = newState
     }
 }

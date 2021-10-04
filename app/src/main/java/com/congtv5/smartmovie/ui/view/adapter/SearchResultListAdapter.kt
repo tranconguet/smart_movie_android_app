@@ -15,8 +15,8 @@ import com.congtv5.domain.model.Genre
 import com.congtv5.domain.model.Movie
 import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.view.adapter.diffutil.MovieDiffUtil
+import com.congtv5.smartmovie.utils.Constants
 import com.congtv5.smartmovie.utils.Constants.IMAGE_BASE_URL
-import com.congtv5.smartmovie.utils.formatGenresToString
 
 class SearchResultListAdapter(
     private var onMovieClick: (Int) -> Unit,
@@ -56,7 +56,7 @@ class SearchResultListAdapter(
             val genres = movie.genreIds.filter { id ->
                 getGenreNameById(id) != null
             }.map { id ->
-                Genre(id, getGenreNameById(id)!!)
+                Genre(id, getGenreNameById(id)!!, null)
             }
 
             tvGenres.text = formatGenresToString(genres)
@@ -71,6 +71,16 @@ class SearchResultListAdapter(
                 .error(R.drawable.ic_error)
                 .into(ivMovieImage)
         }
+
+        private fun formatGenresToString(genres: List<Genre>): String {
+            return if (genres.isNotEmpty()) {
+                genres.joinToString("") { genre ->
+                    "${genre.name} | "
+                }.dropLast(2)
+            } else {
+                Constants.EMPTY_TEXT
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchResultViewHolder {
@@ -82,5 +92,7 @@ class SearchResultListAdapter(
     override fun onBindViewHolder(holder: SearchResultViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
+
+
 
 }

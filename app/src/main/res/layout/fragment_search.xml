@@ -9,7 +9,7 @@
     tools:context=".ui.view.fragments.search.SearchFragment">
 
     <ProgressBar
-        android:id="@+id/prbSearch"
+        android:id="@+id/prbLoading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="invisible"

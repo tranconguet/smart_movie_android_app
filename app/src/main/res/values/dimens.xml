@@ -63,4 +63,6 @@
     <dimen name="search_item_genres_text_size">20sp</dimen>
     <dimen name="genre_item_margin_margin_horizontal">20dp</dimen>
     <dimen name="genre_item_margin_margin_vertical">12dp</dimen>
+    <dimen name="linear_display_movie_item_title_width">200dp</dimen>
+    <dimen name="linear_display_movie_item_max_lines">5</dimen>
 </resources>

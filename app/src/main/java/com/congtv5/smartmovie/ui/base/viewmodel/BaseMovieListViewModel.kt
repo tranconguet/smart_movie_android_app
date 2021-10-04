@@ -2,11 +2,15 @@ package com.congtv5.smartmovie.ui.base.viewmodel
 
 import androidx.lifecycle.viewModelScope
 import com.congtv5.domain.Resource
+import com.congtv5.domain.model.FavoriteMovie
 import com.congtv5.domain.model.MovieListPage
 import com.congtv5.smartmovie.ui.viewstate.MovieListViewState
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 abstract class BaseMovieListViewModel : BaseViewModel<MovieListViewState>() {
+
+    private var loadMovieListJob: Job? = null
 
     abstract suspend fun getMovieListPage(page: Int): Resource<MovieListPage>
 
@@ -21,6 +25,17 @@ abstract class BaseMovieListViewModel : BaseViewModel<MovieListViewState>() {
         )
     }
 
+    // apply favorite list from db to movie list from network
+    fun applyFavoriteToAllMovie(favList: List<FavoriteMovie>) {
+        store.state.movieListPages.forEach { movieListPage ->
+            movieListPage.results.forEach { movie ->
+                val favMovieReference = favList.find { favMovie -> favMovie.movieId == movie.id }
+                movie.isFavoriteMovie = favMovieReference != null && favMovieReference.isLiked
+            }
+        }
+        store.dispatchState(newState = store.state.copy(movieListPages = store.state.movieListPages))
+    }
+
     fun addMovieListPage(movieListPage: MovieListPage) {
         val newList = mutableListOf<MovieListPage>()
         newList.addAll(store.state.movieListPages)
@@ -30,7 +45,8 @@ abstract class BaseMovieListViewModel : BaseViewModel<MovieListViewState>() {
 
     fun getNextMovieListPage() {
         setLoadingState(true)
-        viewModelScope.launch {
+        loadMovieListJob?.cancel()
+        loadMovieListJob = viewModelScope.launch {
             when (val moviesResource = getMovieListPage(store.state.currentPage + 1)) {
                 is Resource.Success -> {
                     moviesResource.data?.let { newList ->
@@ -48,38 +64,50 @@ abstract class BaseMovieListViewModel : BaseViewModel<MovieListViewState>() {
         }
     }
 
-    fun setLoadingState(value: Boolean){
-        if (store.state.currentPage >= 1)
-            setIsLoadingMore(value)
-        else
-            setIsLoading(value)
-    }
-
-    private fun increasePage() {
-        store.dispatchState(newState = store.state.copy(currentPage = store.state.currentPage + 1))
-    }
-
-    fun setIsLoadingMore(value: Boolean) {
-        store.dispatchState(newState = store.state.copy(isLoadingMore = value))
+    private fun setLoadingState(value: Boolean) {
+        if (value) { // turn on
+            if (store.state.currentPage >= 1)
+                setIsLoadingMore(value)
+            else
+                setIsLoading(value)
+        } else { // turn off
+            if (store.state.currentPage > 1)
+                setIsLoadingMore(value)
+            else
+                setIsLoading(value)
+        }
     }
 
     fun clearData() {
         store.dispatchState(newState = store.state.copy(currentPage = 0, movieListPages = listOf()))
     }
 
-    fun setIsError(value: Boolean) {
+    fun setCurrentPage(value: Int) {
+        store.dispatchState(newState = store.state.copy(currentPage = value))
+    }
+
+    private fun increasePage() {
+        store.dispatchState(newState = store.state.copy(currentPage = store.state.currentPage + 1))
+    }
+
+    private fun setIsLoadingMore(value: Boolean) {
+        store.dispatchState(newState = store.state.copy(isLoadingMore = value))
+    }
+
+    private fun setIsError(value: Boolean) {
         store.dispatchState(newState = store.state.copy(isError = value))
     }
 
-    fun setIsReloading(value: Boolean) {
+    private fun setIsReloading(value: Boolean) {
         store.dispatchState(newState = store.state.copy(isReloading = value))
     }
 
-    fun setIsLoading(value: Boolean) {
+    private fun setIsLoading(value: Boolean) {
         store.dispatchState(newState = store.state.copy(isLoading = value))
     }
 
-    fun setCurrentPage(value: Int) {
-        store.dispatchState(newState = store.state.copy(currentPage = value))
+    override fun onCleared() {
+        loadMovieListJob?.cancel()
+        super.onCleared()
     }
 }

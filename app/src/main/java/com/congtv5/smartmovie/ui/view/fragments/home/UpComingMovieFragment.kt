@@ -1,6 +1,5 @@
 package com.congtv5.smartmovie.ui.view.fragments.home
 
-import android.util.Log
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.congtv5.domain.model.MovieListPage
@@ -36,7 +35,6 @@ class UpComingMovieFragment : MovieListFragment() {
     }
 
     override fun getFirstMovieListPage(): MovieListPage? {
-        Log.d("CongTV5","UpComingMovieFragment #getFirstMovieListPage ${homeViewModel.store.state.upComingMovieFirstPage}")
         return homeViewModel.store.state.upComingMovieFirstPage
     }
 

@@ -10,7 +10,8 @@ class GenreMapper @Inject constructor() : Mapper<GenreResponse, Genre>() {
     override fun map(response: GenreResponse): Genre {
         return Genre(
             id = response.id ?: 0,
-            name = response.name ?: EMPTY_TEXT
+            name = response.name ?: EMPTY_TEXT,
+            backdropPath = null
         )
     }
 

@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 
 abstract class BaseViewModel<S : Any> : ViewModel() {
+
     val store by lazy {
         ViewStateStore(this.initState())
     }

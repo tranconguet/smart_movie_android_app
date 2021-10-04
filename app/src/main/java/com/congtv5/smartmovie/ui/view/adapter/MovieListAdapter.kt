@@ -50,7 +50,7 @@ class MovieListAdapter(
 
             ivStar.setOnClickListener {
                 if (movie != null) {
-                    val isFav = isMovieFavorite.invoke(movie!!.id)
+                    val isFav = isMovieFavorite.invoke(movie!!.id) // check if movie favorite
                     //set icon
                     if(!isFav){
                         ivStar.setImageResource(R.drawable.star_active)
@@ -64,7 +64,6 @@ class MovieListAdapter(
                     Log.d("CongTV5", "MovieGridItemViewHolder #init() movie is null")
                 }
             }
-
         }
 
         fun bind(movie: Movie) {
@@ -98,6 +97,7 @@ class MovieListAdapter(
         private var movie: Movie? = null
         private val layoutMovie = view.findViewById<ConstraintLayout>(R.id.layoutMovie)
         private val tvMovieName = view.findViewById<TextView>(R.id.tvMovieName)
+        private val tvMovieDescription = view.findViewById<TextView>(R.id.tvMovieDescription)
         private val ivMovieImage = view.findViewById<ImageView>(R.id.ivMovieImage)
         private val ivStar = view.findViewById<ImageView>(R.id.ivStar)
 
@@ -113,7 +113,7 @@ class MovieListAdapter(
 
             ivStar.setOnClickListener {
                 if (movie != null) {
-                    val isFav = isMovieFavorite.invoke(movie!!.id)
+                    val isFav = isMovieFavorite.invoke(movie!!.id) // check if movie favorite
                     //set icon
                     if(!isFav){
                         ivStar.setImageResource(R.drawable.star_active)
@@ -140,6 +140,7 @@ class MovieListAdapter(
             }
 
             tvMovieName.text = movie.title
+            tvMovieDescription.text = movie.overview
 
             val imageUrl = IMAGE_BASE_URL + movie.posterPath
             Glide.with(ivMovieImage)

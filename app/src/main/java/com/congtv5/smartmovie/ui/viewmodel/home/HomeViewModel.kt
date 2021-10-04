@@ -10,8 +10,8 @@ import com.congtv5.smartmovie.ui.viewstate.HomeViewState
 import com.congtv5.smartmovie.utils.Constants.NETWORK_ERROR_MESSAGE
 import com.congtv5.smartmovie.utils.MovieCategory
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,13 +21,18 @@ class HomeViewModel @Inject constructor(
     private val getUpComingMovieListPageUseCase: GetUpComingMovieListPageUseCase,
     private val getNowPlayingMovieListPageUseCase: GetNowPlayingMovieListPageUseCase,
     private val getFavoriteMovieListUseCase: GetFavoriteMovieListUseCase,
-    private val updateFavoriteMovieUseCase: UpdateFavoriteMovieUseCase,
     private val insertFavoriteMovieUseCase: InsertFavoriteMovieUseCase
 ) : BaseViewModel<HomeViewState>() {
+
+    private var loadFavoriteMovieJob: Job? = null
+    private var insertFavoriteMovieJob: Job? = null
+    private var loadMovieListJob: Job? = null
 
     companion object {
         const val ITEM_PER_SECTION = 4
     }
+
+    private var _favoriteList = listOf<FavoriteMovie>()
 
     override fun initState(): HomeViewState {
         return HomeViewState(
@@ -35,8 +40,8 @@ class HomeViewModel @Inject constructor(
             isError = false,
             currentDisplayType = MovieItemDisplayType.GRID,
             currentPageType = null,
-            favoriteList = listOf(),
-            movieSectionMap = mapOf(),
+            favoriteList = null,
+            movieSectionMap = mutableMapOf(),
             popularMovieFirstPage = null,
             topRatedMovieFirstPage = null,
             nowPlayingMovieFirstPage = null,
@@ -45,38 +50,50 @@ class HomeViewModel @Inject constructor(
     }
 
     init {
-        clearAllData()
-        setIsLoading(true)
-        getMovieListToInitAllPage()
+        getFavoriteList()
     }
 
-    fun getFavoriteList() {
-        viewModelScope.launch {
-            getFavoriteMovieListUseCase.execute().collect { favList ->
-                store.dispatchState(newState = store.state.copy(favoriteList = favList))
-            }
+    private fun getFavoriteList() {
+        loadFavoriteMovieJob?.cancel()
+        loadFavoriteMovieJob = viewModelScope.launch {
+            val favList = getFavoriteMovieListUseCase.execute()
+            store.dispatchState(newState = store.state.copy(favoriteList = favList))
         }
     }
 
     fun updateFavoriteMovie(favoriteMovie: FavoriteMovie) {
-        viewModelScope.launch {
-            if (isMovieFavorite(favoriteMovie.movieId))
-                updateFavoriteMovieUseCase.execute(favoriteMovie)
-            else insertFavoriteMovieUseCase.execute(favoriteMovie)
+        insertFavoriteMovieJob?.cancel()
+        insertFavoriteMovieJob = viewModelScope.launch {
+            insertFavoriteMovieUseCase.execute(favoriteMovie)
         }
     }
 
     fun isMovieFavorite(movieId: Int): Boolean {
-        val favList = store.state.favoriteList.filter { item ->
-            item.isLiked
-        }.map { item ->
-            item.movieId
+        val favoriteMovieIds =
+            _favoriteList.filter { item -> item.isLiked }.map { item -> item.movieId }
+        return favoriteMovieIds.contains(movieId)
+    }
+
+    fun applyFavoriteToAllMovie(favList: List<FavoriteMovie>) {
+        val sectionMap = store.state.movieSectionMap
+        sectionMap.map { entry ->
+            if (entry.value is Resource.Success) {
+                val currentList = (entry.value as? Resource.Success<List<Movie>>)?.data
+                currentList?.forEach { movie ->
+                    val favMovieReference =
+                        favList.find { favMovie -> favMovie.movieId == movie.id }
+                    movie.isFavoriteMovie = favMovieReference != null && favMovieReference.isLiked
+                }
+            }
         }
-        return favList.contains(movieId)
+        store.dispatchState(newState = store.state.copy(movieSectionMap = sectionMap))
     }
 
     fun getMovieListToInitAllPage() {
-        viewModelScope.launch {
+        setIsLoading(true)
+        clearAllData()
+        loadMovieListJob?.cancel()
+        loadMovieListJob = viewModelScope.launch { // combine coroutine
             coroutineScope {
                 getPopularMovieListPageFirstLaunch()
             }
@@ -196,8 +213,9 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun setDisplayType(value: MovieItemDisplayType) {
-        if (!store.state.isLoading)
+    fun setDisplayType(value: MovieItemDisplayType, isLoading: Boolean) {
+        // requirement: not allow toggle when loading
+        if (!isLoading)
             store.dispatchState(newState = store.state.copy(currentDisplayType = value))
     }
 
@@ -212,18 +230,24 @@ class HomeViewModel @Inject constructor(
     }
 
     fun clearAllData() {
-        store.dispatchState(newState = store.state.copy(
-            movieSectionMap = mutableMapOf(
-                MovieCategory.POPULAR to null,
-                MovieCategory.TOP_RATED to null,
-                MovieCategory.UP_COMING to null,
-                MovieCategory.NOW_PLAYING to null
-            ),
-            popularMovieFirstPage = null,
-            nowPlayingMovieFirstPage = null,
-            topRatedMovieFirstPage = null,
-            upComingMovieFirstPage = null
-        ))
+        store.dispatchState(
+            newState = store.state.copy(
+                movieSectionMap = mutableMapOf(
+                    MovieCategory.POPULAR to null,
+                    MovieCategory.TOP_RATED to null,
+                    MovieCategory.UP_COMING to null,
+                    MovieCategory.NOW_PLAYING to null
+                ),
+                popularMovieFirstPage = null,
+                nowPlayingMovieFirstPage = null,
+                topRatedMovieFirstPage = null,
+                upComingMovieFirstPage = null
+            )
+        )
+    }
+
+    fun setFavoriteList(favoriteList: List<FavoriteMovie>) {
+        _favoriteList = favoriteList
     }
 
     fun setIsLoading(value: Boolean) {
@@ -238,4 +262,10 @@ class HomeViewModel @Inject constructor(
         store.dispatchState(newState = store.state.copy(currentPageType = movieCategory))
     }
 
+    override fun onCleared() {
+        loadMovieListJob?.cancel()
+        loadFavoriteMovieJob?.cancel()
+        insertFavoriteMovieJob?.cancel()
+        super.onCleared()
+    }
 }

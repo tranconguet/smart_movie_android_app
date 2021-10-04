@@ -1,6 +1,5 @@
 package com.congtv5.smartmovie.ui.view.fragments.moviedetail
 
-import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -16,8 +15,9 @@ import com.congtv5.smartmovie.ui.base.fragment.BaseFragment
 import com.congtv5.smartmovie.ui.custom.ExpandableTextView
 import com.congtv5.smartmovie.ui.view.adapter.CastListAdapter
 import com.congtv5.smartmovie.ui.viewmodel.MovieDetailViewModel
-import com.congtv5.smartmovie.utils.*
+import com.congtv5.smartmovie.utils.Constants
 import com.congtv5.smartmovie.utils.Constants.EMPTY_TEXT
+import com.congtv5.smartmovie.utils.MovieInfoFormatter
 import javax.inject.Inject
 
 class MovieDetailFragment : BaseFragment() {
@@ -28,8 +28,11 @@ class MovieDetailFragment : BaseFragment() {
 
     @Inject
     lateinit var movieDetailViewModel: MovieDetailViewModel
+    @Inject
+    lateinit var formatter: MovieInfoFormatter
 
     private val args: MovieDetailFragmentArgs by navArgs()
+
 
     private val castListAdapter = CastListAdapter()
     private var navController: NavController? = null
@@ -97,8 +100,7 @@ class MovieDetailFragment : BaseFragment() {
             owner = this,
             selector = { state -> state.movieDetail },
             observer = { movieDetail ->
-                Log.d("MovieDetailFragment", "#initObserveData movieDetail: $movieDetail")
-                setView(movieDetail)
+                setMovieDetailView(movieDetail)
             }
         )
 
@@ -106,11 +108,70 @@ class MovieDetailFragment : BaseFragment() {
             owner = this,
             selector = { state -> state.casts },
             observer = { castList ->
-                Log.d("MovieDetailFragment", "#initObserveData castList: $castList")
                 castListAdapter.submitList(castList)
             }
         )
 
+    }
+
+    override fun initData() {
+        val movieId = args.movieId
+        movieDetailViewModel.getMovieDetail(movieId)
+    }
+
+    override fun initView() {
+        navController = findNavController()
+        initAdapter()
+    }
+
+    override fun initAction() {
+        ivBackButton.setOnClickListener {
+            findNavController().popBackStack()
+        }
+    }
+
+    private fun initAdapter() {
+        rvCastList.adapter = castListAdapter
+        rvCastList.layoutManager =
+            GridLayoutManager(context, CAST_ITEM_PER_COLUMN, RecyclerView.HORIZONTAL, false)
+    }
+
+    private fun setMovieDetailView(movieDetail: MovieDetail?) {
+        val glide = Glide.with(this)
+        movieDetail?.let {
+
+            val imageUrl = Constants.IMAGE_BASE_URL + movieDetail.posterPath
+            glide.load(imageUrl)
+                .placeholder(R.drawable.ic_place_holder)
+                .error(R.drawable.ic_error)
+                .into(ivMovieImage)
+
+            tvMovieName.text = movieDetail.title
+            tvMovieDescription.text = movieDetail.overview
+
+            val productCountry = if (movieDetail.productionCountries.isNotEmpty()) {
+                movieDetail.productionCountries[0].iso_3166_1
+            } else EMPTY_TEXT
+
+            tvMovieTimeInfo.text = formatter.formatMovieDurationToString(
+                movieDetail.runtime,
+                movieDetail.releaseDate,
+                productCountry
+            )
+
+            val language = if (movieDetail.spokenLanguages.isNotEmpty()) {
+                movieDetail.spokenLanguages[0].name
+            } else {
+                EMPTY_TEXT
+            }
+            tvLanguages.text = formatter.formatLanguageToString(language)
+
+            tvGenres.text = formatter.formatGenresToString(movieDetail.genres)
+            tvRating.text = formatter.formatRatingToString(movieDetail.voteAverage)
+
+            rbRatingBar.numStars = movieDetail.voteAverage.toFloat().toInt() / 2 // change range vote from 10 to 5
+            rbRatingBar.rating = movieDetail.voteAverage.toFloat() / 2 // change range vote from 10 to 5
+        }
     }
 
     private fun handleCastLoading(isLoading: Boolean) {
@@ -130,63 +191,6 @@ class MovieDetailFragment : BaseFragment() {
         } else {
             prbMovieInfo.visibility = View.INVISIBLE
             layoutMovieInfo.visibility = View.VISIBLE
-        }
-    }
-
-    override fun initData() {
-        val movieId = args.movieId
-        movieDetailViewModel.getMovieDetail(movieId)
-    }
-
-    override fun initView() {
-        navController = findNavController()
-        initAdapter()
-    }
-
-    private fun initAdapter() {
-        rvCastList.adapter = castListAdapter
-        rvCastList.layoutManager =
-            GridLayoutManager(context, CAST_ITEM_PER_COLUMN, RecyclerView.HORIZONTAL, false)
-    }
-
-    override fun initAction() {
-        ivBackButton.setOnClickListener {
-            findNavController().popBackStack()
-        }
-    }
-
-    private fun setView(movieDetail: MovieDetail?) {
-        val glide = Glide.with(this)
-        movieDetail?.let {
-            val imageUrl = Constants.IMAGE_BASE_URL + movieDetail.posterPath
-            glide.load(imageUrl)
-                .placeholder(R.drawable.ic_place_holder)
-                .error(R.drawable.ic_error)
-                .into(ivMovieImage)
-            tvMovieName.text = movieDetail.title
-            tvMovieDescription.text = movieDetail.overview
-
-            val productCountry = if (movieDetail.productionCountries.isNotEmpty()) {
-                movieDetail.productionCountries[0].iso_3166_1
-            } else EMPTY_TEXT
-            tvMovieTimeInfo.text = formatMovieDurationToString(
-                movieDetail.runtime,
-                movieDetail.releaseDate,
-                productCountry
-            )
-
-            val language = if (movieDetail.spokenLanguages.isNotEmpty()) {
-                movieDetail.spokenLanguages[0].name
-            } else {
-                EMPTY_TEXT
-            }
-            tvLanguages.text = formatLanguageToString(language)
-
-            tvGenres.text = formatGenresToString(movieDetail.genres)
-            tvRating.text = formatRatingToString(movieDetail.voteAverage)
-
-            rbRatingBar.numStars = movieDetail.voteAverage.toFloat().toInt() / 2
-            rbRatingBar.rating = movieDetail.voteAverage.toFloat() / 2
         }
     }
 

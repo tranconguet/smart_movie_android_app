@@ -26,7 +26,7 @@ class GenreRepositoryImpl(
             try {
                 val genreList = genreApi.getGenreList()
                 Resource.Success(genreMapper.map(genreList.genres ?: listOf()))
-            } catch (e: Exception) {
+            } catch (e: Exception) { // catch specific exception
                 Resource.Error(NETWORK_ERROR_MESSAGE)
             }
         }

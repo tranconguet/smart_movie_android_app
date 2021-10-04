@@ -10,16 +10,3 @@ data class MovieDetailViewState(
     val isCastLoading: Boolean,
     val isError: Boolean
 )
-
-
-//private val _movieDetail = MutableStateFlow<MovieDetail?>(null)
-//val movieDetail: StateFlow<MovieDetail?> = _movieDetail
-//
-//private val _casts = MutableStateFlow<List<Cast>>(listOf())
-//val casts: StateFlow<List<Cast>> = _casts
-//
-//private val _isError = MutableStateFlow(false)
-//val isError: StateFlow<Boolean> = _isError
-//
-//private val _isLoading = MutableStateFlow(false)
-//val isLoading: StateFlow<Boolean> = _isLoading

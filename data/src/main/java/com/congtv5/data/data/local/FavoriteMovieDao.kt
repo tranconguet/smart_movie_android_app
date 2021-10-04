@@ -19,7 +19,7 @@ interface FavoriteMovieDao {
     @Query("SELECT * FROM $FAVORITE_MOVIE_TABLE WHERE $MOVIE_ID=:movieId")
     fun getFavoriteMovie(movieId: Int): FavoriteMovieEntity
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertMovie(vararg movies: FavoriteMovieEntity)
 
     @Query("UPDATE $FAVORITE_MOVIE_TABLE SET $MOVIE_IS_LIKED=:value WHERE $MOVIE_ID=:movieId")

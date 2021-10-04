@@ -13,6 +13,7 @@ import com.bumptech.glide.Glide
 import com.congtv5.domain.model.Genre
 import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.view.adapter.diffutil.GenreDiffUtil
+import com.congtv5.smartmovie.utils.Constants
 
 class GenreListAdapter(
     private val onClickGenre: (Int, String) -> Unit
@@ -42,8 +43,10 @@ class GenreListAdapter(
             this.genre = genre
             tvGenreTitle.text = genre.name
 
+            val imageUrl = Constants.IMAGE_BASE_URL + genre.backdropPath
+
             Glide.with(ivGenreImage)
-                .load(R.drawable.test_genre_image)
+                .load(imageUrl)
                 .placeholder(R.drawable.ic_place_holder)
                 .error(R.drawable.ic_error)
                 .into(ivGenreImage)

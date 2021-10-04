@@ -1,6 +1,7 @@
 package com.congtv5.smartmovie.ui.view.fragments.genre
 
 import android.view.View
+import android.widget.ProgressBar
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,6 +20,7 @@ class GenreFragment : BaseFragment() {
 
 
     private lateinit var rvGenreList: RecyclerView
+    private lateinit var prbLoading: ProgressBar
 
     override fun getLayoutID(): Int {
         return R.layout.fragment_genre
@@ -30,6 +32,7 @@ class GenreFragment : BaseFragment() {
 
     override fun initBinding(view: View) {
         rvGenreList = view.findViewById(R.id.rvGenreList)
+        prbLoading = view.findViewById(R.id.prbLoading)
     }
 
     override fun initObserveData() {
@@ -38,7 +41,7 @@ class GenreFragment : BaseFragment() {
             owner = this,
             selector = { state -> state.isLoading },
             observer = { isLoading ->
-                // handle loading
+                handleLoading(isLoading)
             }
         )
 
@@ -50,6 +53,14 @@ class GenreFragment : BaseFragment() {
             }
         )
 
+    }
+
+    private fun handleLoading(isLoading: Boolean) {
+        if (isLoading){
+            prbLoading.visibility = View.VISIBLE
+        }else{
+            prbLoading.visibility = View.INVISIBLE
+        }
     }
 
     override fun initData() {
