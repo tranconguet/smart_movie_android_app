@@ -38,7 +38,7 @@ class MovieDetailViewModel @Inject constructor(
             coroutineScope {
                 when (val result = getMovieDetailUseCase.execute(movieId)) {
                     is Resource.Success -> {
-                        store.dispatchState(newState = store.state.copy(movieDetail = result.data))
+                        store.dispatchState(newState = currentState.copy(movieDetail = result.data))
                     }
                     is Resource.Error -> {
                         setIsError(true)
@@ -51,7 +51,7 @@ class MovieDetailViewModel @Inject constructor(
                 when (val result = getCastAndCrewListUseCase.execute(movieId)) {
                     is Resource.Success -> {
                         store.dispatchState(
-                            newState = store.state.copy(
+                            newState = currentState.copy(
                                 casts = result.data?.casts ?: listOf()
                             )
                         )
@@ -67,15 +67,15 @@ class MovieDetailViewModel @Inject constructor(
     }
 
     private fun setIsError(value: Boolean) {
-        store.dispatchState(newState = store.state.copy(isError = value))
+        store.dispatchState(newState = currentState.copy(isError = value))
     }
 
     private fun setIsMovieInfoLoading(value: Boolean) {
-        store.dispatchState(newState = store.state.copy(isMovieInfoLoading = value))
+        store.dispatchState(newState = currentState.copy(isMovieInfoLoading = value))
     }
 
     private fun setIsCastLoading(value: Boolean) {
-        store.dispatchState(newState = store.state.copy(isCastLoading = value))
+        store.dispatchState(newState = currentState.copy(isCastLoading = value))
     }
 
     override fun onCleared() {

@@ -14,6 +14,7 @@ import com.congtv5.domain.model.FavoriteMovie
 import com.congtv5.domain.model.Movie
 import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.view.adapter.diffutil.MovieDiffUtil
+import com.congtv5.smartmovie.utils.Constants.EMPTY_TEXT
 import com.congtv5.smartmovie.utils.Constants.IMAGE_BASE_URL
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
 
@@ -23,7 +24,6 @@ class MovieListAdapter(
     private var onStarClick: (FavoriteMovie) -> Unit,
     private var isMovieFavorite: (Int) -> Boolean
 ) : ListAdapter<Movie, RecyclerView.ViewHolder>(MovieDiffUtil()) {
-
 
     class MovieGridItemViewHolder(
         view: View,
@@ -37,6 +37,7 @@ class MovieListAdapter(
         private val tvMovieName = view.findViewById<TextView>(R.id.tvMovieName)
         private val ivMovieImage = view.findViewById<ImageView>(R.id.ivMovieImage)
         private val ivStar = view.findViewById<ImageView>(R.id.ivStar)
+        private val tvMovieRunTime = view.findViewById<TextView>(R.id.tvMovieRunTime)
 
         init {
             layoutMovie.setOnClickListener {
@@ -51,10 +52,9 @@ class MovieListAdapter(
             ivStar.setOnClickListener {
                 if (movie != null) {
                     val isFav = isMovieFavorite.invoke(movie!!.id) // check if movie favorite
-                    //set icon
-                    if(!isFav){
+                    if (!isFav) { // set icon
                         ivStar.setImageResource(R.drawable.star_active)
-                    }else{
+                    } else {
                         ivStar.setImageResource(R.drawable.star_default)
                     }
                     val favMovie = FavoriteMovie(movie!!.id, !isFav)
@@ -70,11 +70,12 @@ class MovieListAdapter(
             this.movie = movie
 
             tvMovieName.text = movie.title
+            tvMovieRunTime.text = formatTimeToString(movie.runtime)
 
             val isFav = isMovieFavorite.invoke(movie.id)
-            if(isFav){
+            if (isFav) {
                 ivStar.setImageResource(R.drawable.star_active)
-            }else{
+            } else {
                 ivStar.setImageResource(R.drawable.star_default)
             }
 
@@ -84,6 +85,16 @@ class MovieListAdapter(
                 .placeholder(R.drawable.ic_place_holder)
                 .error(R.drawable.ic_error)
                 .into(ivMovieImage)
+        }
+
+        private fun formatTimeToString(runtime: Int): String {
+            val hours = runtime / 60
+            val minutes = runtime - hours * 60
+            return when {
+                hours > 0 -> "${hours}h ${minutes}m"
+                hours == 0 -> "${minutes}m"
+                else -> EMPTY_TEXT // api result fail
+            }
         }
     }
 
@@ -115,9 +126,9 @@ class MovieListAdapter(
                 if (movie != null) {
                     val isFav = isMovieFavorite.invoke(movie!!.id) // check if movie favorite
                     //set icon
-                    if(!isFav){
+                    if (!isFav) {
                         ivStar.setImageResource(R.drawable.star_active)
-                    }else{
+                    } else {
                         ivStar.setImageResource(R.drawable.star_default)
                     }
                     val favMovie = FavoriteMovie(movie!!.id, !isFav)
@@ -133,9 +144,9 @@ class MovieListAdapter(
             this.movie = movie
 
             val isFav = isMovieFavorite.invoke(movie.id)
-            if(isFav){
+            if (isFav) {
                 ivStar.setImageResource(R.drawable.star_active)
-            }else{
+            } else {
                 ivStar.setImageResource(R.drawable.star_default)
             }
 

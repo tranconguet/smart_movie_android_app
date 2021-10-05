@@ -1,7 +1,9 @@
 package com.congtv5.smartmovie.ui.view.fragments.genre
 
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,9 +20,10 @@ class GenreFragment : BaseFragment() {
 
     private var genreListAdapter: GenreListAdapter? = null
 
-
     private lateinit var rvGenreList: RecyclerView
     private lateinit var prbLoading: ProgressBar
+    private lateinit var tvReload: TextView
+    private lateinit var layoutError: LinearLayout
 
     override fun getLayoutID(): Int {
         return R.layout.fragment_genre
@@ -33,6 +36,8 @@ class GenreFragment : BaseFragment() {
     override fun initBinding(view: View) {
         rvGenreList = view.findViewById(R.id.rvGenreList)
         prbLoading = view.findViewById(R.id.prbLoading)
+        tvReload = view.findViewById(R.id.tvReload)
+        layoutError = view.findViewById(R.id.layoutError)
     }
 
     override fun initObserveData() {
@@ -56,10 +61,15 @@ class GenreFragment : BaseFragment() {
     }
 
     private fun handleLoading(isLoading: Boolean) {
-        if (isLoading){
+        if (isLoading) {
             prbLoading.visibility = View.VISIBLE
-        }else{
+            layoutError.visibility = View.INVISIBLE
+        } else if (!isLoading && genreListViewModel.currentState.isError) {
             prbLoading.visibility = View.INVISIBLE
+            layoutError.visibility = View.VISIBLE
+        } else {
+            prbLoading.visibility = View.INVISIBLE
+            layoutError.visibility = View.INVISIBLE
         }
     }
 
@@ -76,6 +86,9 @@ class GenreFragment : BaseFragment() {
     }
 
     override fun initAction() {
+        tvReload.setOnClickListener {
+            genreListViewModel.getGenreList()
+        }
     }
 
     private fun genreOnClick(genreId: Int, genreTitle: String) {

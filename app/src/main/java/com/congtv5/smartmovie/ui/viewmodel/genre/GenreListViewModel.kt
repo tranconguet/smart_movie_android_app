@@ -1,6 +1,5 @@
 package com.congtv5.smartmovie.ui.viewmodel.genre
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.congtv5.domain.Resource
 import com.congtv5.domain.usecase.GetGenreListUseCase
@@ -8,6 +7,7 @@ import com.congtv5.domain.usecase.GetMovieListPageByGenreUseCase
 import com.congtv5.smartmovie.ui.base.viewmodel.BaseViewModel
 import com.congtv5.smartmovie.ui.viewstate.GenreListViewState
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.random.Random
@@ -28,25 +28,27 @@ class GenreListViewModel @Inject constructor(
     }
 
     fun getGenreList() {
-        setIsLoading(true)
+        clearData()
         setIsError(false)
+        setIsLoading(true)
         loadGenreListJob?.cancel()
         loadGenreListJob = viewModelScope.launch {
             when (val genresResource = getGenreListUseCase.execute()) {
                 is Resource.Success -> {
                     val genreList = genresResource.data ?: listOf()
-                    genreList.forEach { genre ->
-                        val firstPageOfGenre =
-                            getMovieListPageByGenreUseCase.execute(genreId = genre.id, page = 1)
-                        val movieListOfGenre = firstPageOfGenre.data?.results ?: listOf()
-                        if (movieListOfGenre.isNotEmpty()) {
-                            val randomIndex =
-                                Random.nextInt(0, movieListOfGenre.size - 1)
-                            genre.backdropPath = movieListOfGenre[randomIndex].backdropPath
+                    genreList.map { genre ->
+                        launch {
+                            // load each genre in parallel to get images
+                            val firstPageOfGenre = getMovieListPageByGenreUseCase.execute(genreId = genre.id, page = 1)
+                            val movieListOfGenre = firstPageOfGenre.data?.results ?: listOf()
+                            if (movieListOfGenre.isNotEmpty()) {
+                                val randomIndex =
+                                    Random.nextInt(0, movieListOfGenre.size - 1)
+                                genre.backdropPath = movieListOfGenre[randomIndex].backdropPath
+                            }
                         }
-                    }
-                    store.dispatchState(newState = store.state.copy(genres = genreList))
-                    Log.d("CongTV5", "GenreListViewModel #getGenreList() $genreList")
+                    }.joinAll()
+                    store.dispatchState(newState = currentState.copy(genres = genreList))
                 }
                 else -> {
                     setIsError(true)
@@ -56,13 +58,16 @@ class GenreListViewModel @Inject constructor(
         }
     }
 
+    private fun clearData() {
+        store.dispatchState(newState = currentState.copy(genres = listOf()))
+    }
 
     private fun setIsError(value: Boolean) {
-        store.dispatchState(newState = store.state.copy(isError = value))
+        store.dispatchState(newState = currentState.copy(isError = value))
     }
 
     private fun setIsLoading(value: Boolean) {
-        store.dispatchState(newState = store.state.copy(isLoading = value))
+        store.dispatchState(newState = currentState.copy(isLoading = value))
     }
 
     override fun onCleared() {

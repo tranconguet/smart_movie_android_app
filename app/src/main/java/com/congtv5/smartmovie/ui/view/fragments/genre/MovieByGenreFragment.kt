@@ -1,6 +1,5 @@
 package com.congtv5.smartmovie.ui.view.fragments.genre
 
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.ProgressBar
@@ -10,14 +9,14 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.congtv5.domain.model.MovieListPage
 import com.congtv5.smartmovie.R
-import com.congtv5.smartmovie.ui.base.fragment.MovieListFragment
+import com.congtv5.smartmovie.ui.base.fragment.BaseMovieListFragment
 import com.congtv5.smartmovie.ui.base.viewmodel.ViewModelFactory
 import com.congtv5.smartmovie.ui.viewmodel.genre.MovieByGenreViewModel
 import com.congtv5.smartmovie.ui.viewmodel.home.HomeViewModel
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
 import javax.inject.Inject
 
-class MovieByGenreFragment : MovieListFragment() {
+class MovieByGenreFragment : BaseMovieListFragment() {
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
@@ -29,10 +28,10 @@ class MovieByGenreFragment : MovieListFragment() {
     lateinit var movieByGenreViewModel: MovieByGenreViewModel
 
     private val args: MovieByGenreFragmentArgs by navArgs()
-    lateinit var tvPageTitle: TextView
-    lateinit var ivBackButton: ImageView
-    lateinit var ivDisplayType: ImageView
-    lateinit var prbLoading: ProgressBar
+    private lateinit var tvPageTitle: TextView
+    private lateinit var ivBackButton: ImageView
+    private lateinit var ivDisplayType: ImageView
+    private lateinit var prbLoading: ProgressBar
 
     override fun getLayoutID(): Int {
         return R.layout.fragment_movie_by_genre
@@ -57,14 +56,6 @@ class MovieByGenreFragment : MovieListFragment() {
 
     override fun initObserveData() {
         super.initObserveData()
-
-        movieByGenreViewModel.store.observe(
-            owner = this,
-            selector = { state -> state.isLoading },
-            observer = { isLoading ->
-                handleIsLoading(isLoading)
-            }
-        )
 
         homeViewModel.store.observe(
             owner = this,
@@ -99,23 +90,15 @@ class MovieByGenreFragment : MovieListFragment() {
     }
 
     override fun initData() {
+        super.initData()
         if (movieListViewModel.store.state.currentPage == 0) {
-            Log.d("CongTV5", "MovieByGenreFragment #initData() initData")
             movieByGenreViewModel.setGenreId(args.genreId)
             movieByGenreViewModel.getNextMovieListPage()
         }
     }
 
-    private fun handleIsLoading(isLoading: Boolean) {
-        if (isLoading) {
-            prbLoading.visibility = View.VISIBLE
-        } else {
-            prbLoading.visibility = View.INVISIBLE
-        }
-    }
-
     override fun getFirstMovieListPage(): MovieListPage? {
-        //this movieList wasn't called when begin so call first page in initData()
+        // this movieList wasn't called when begin so call first page in initData()
         return null
     }
 

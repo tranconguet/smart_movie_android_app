@@ -26,8 +26,8 @@ abstract class BaseFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initInjection()
+        initData()
     }
-
 
     @CallSuper
     override fun onCreateView(
@@ -43,7 +43,6 @@ abstract class BaseFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initBinding(view)
         initObserveData()
-        initData()
         initView()
         initAction()
     }

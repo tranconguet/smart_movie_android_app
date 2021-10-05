@@ -3,9 +3,11 @@ package com.congtv5.smartmovie.ui.base.viewmodel
 import androidx.lifecycle.viewModelScope
 import com.congtv5.domain.Resource
 import com.congtv5.domain.model.FavoriteMovie
+import com.congtv5.domain.model.MovieDetail
 import com.congtv5.domain.model.MovieListPage
 import com.congtv5.smartmovie.ui.viewstate.MovieListViewState
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
 abstract class BaseMovieListViewModel : BaseViewModel<MovieListViewState>() {
@@ -13,51 +15,55 @@ abstract class BaseMovieListViewModel : BaseViewModel<MovieListViewState>() {
     private var loadMovieListJob: Job? = null
 
     abstract suspend fun getMovieListPage(page: Int): Resource<MovieListPage>
+    abstract suspend fun getMovieDetail(movieId: Int): Resource<MovieDetail>
 
     override fun initState(): MovieListViewState {
         return MovieListViewState(
-            movieListPages = listOf(),
+            movieListPages = mutableListOf(),
             currentPage = 0,
             isLoading = false,
             isError = false,
             isLoadingMore = false,
-            isReloading = false
         )
     }
 
     // apply favorite list from db to movie list from network
     fun applyFavoriteToAllMovie(favList: List<FavoriteMovie>) {
-        store.state.movieListPages.forEach { movieListPage ->
+        currentState.movieListPages.forEach { movieListPage ->
             movieListPage.results.forEach { movie ->
                 val favMovieReference = favList.find { favMovie -> favMovie.movieId == movie.id }
                 movie.isFavoriteMovie = favMovieReference != null && favMovieReference.isLiked
             }
         }
-        store.dispatchState(newState = store.state.copy(movieListPages = store.state.movieListPages))
+        store.dispatchState(newState = currentState.copy(movieListPages = currentState.movieListPages))
     }
 
     fun addMovieListPage(movieListPage: MovieListPage) {
-        val newList = mutableListOf<MovieListPage>()
-        newList.addAll(store.state.movieListPages)
-        newList.add(movieListPage)
-        store.dispatchState(newState = store.state.copy(movieListPages = newList))
+        currentState.movieListPages.add(movieListPage)
+        store.dispatchState(newState = currentState.copy(movieListPages = currentState.movieListPages))
     }
 
     fun getNextMovieListPage() {
+        setIsError(false)
         setLoadingState(true)
         loadMovieListJob?.cancel()
         loadMovieListJob = viewModelScope.launch {
-            when (val moviesResource = getMovieListPage(store.state.currentPage + 1)) {
+            when (val moviesResource = getMovieListPage(currentState.currentPage + 1)) {
                 is Resource.Success -> {
                     moviesResource.data?.let { newList ->
+                        newList.results.map { movie ->
+                            launch { // get each movie detail in parallel to get movie runtime
+                                val movieDetail = getMovieDetail(movie.id)
+                                movie.runtime = movieDetail.data?.runtime ?: 0
+                            }
+                        }.joinAll()
                         increasePage()
                         addMovieListPage(newList)
                     }
-                    setIsReloading(false)
                     setLoadingState(false)
                 }
-                else -> {
-                    setIsReloading(false)
+                is Resource.Error -> {
+                    setIsError(true)
                     setLoadingState(false)
                 }
             }
@@ -66,12 +72,12 @@ abstract class BaseMovieListViewModel : BaseViewModel<MovieListViewState>() {
 
     private fun setLoadingState(value: Boolean) {
         if (value) { // turn on
-            if (store.state.currentPage >= 1)
+            if (currentState.currentPage >= 1)
                 setIsLoadingMore(value)
             else
                 setIsLoading(value)
         } else { // turn off
-            if (store.state.currentPage > 1)
+            if (currentState.currentPage > 1)
                 setIsLoadingMore(value)
             else
                 setIsLoading(value)
@@ -79,31 +85,32 @@ abstract class BaseMovieListViewModel : BaseViewModel<MovieListViewState>() {
     }
 
     fun clearData() {
-        store.dispatchState(newState = store.state.copy(currentPage = 0, movieListPages = listOf()))
+        store.dispatchState(
+            newState = currentState.copy(
+                currentPage = 0,
+                movieListPages = mutableListOf()
+            )
+        )
     }
 
     fun setCurrentPage(value: Int) {
-        store.dispatchState(newState = store.state.copy(currentPage = value))
+        store.dispatchState(newState = currentState.copy(currentPage = value))
     }
 
     private fun increasePage() {
-        store.dispatchState(newState = store.state.copy(currentPage = store.state.currentPage + 1))
+        store.dispatchState(newState = currentState.copy(currentPage = currentState.currentPage + 1))
     }
 
     private fun setIsLoadingMore(value: Boolean) {
-        store.dispatchState(newState = store.state.copy(isLoadingMore = value))
+        store.dispatchState(newState = currentState.copy(isLoadingMore = value))
     }
 
     private fun setIsError(value: Boolean) {
-        store.dispatchState(newState = store.state.copy(isError = value))
-    }
-
-    private fun setIsReloading(value: Boolean) {
-        store.dispatchState(newState = store.state.copy(isReloading = value))
+        store.dispatchState(newState = currentState.copy(isError = value))
     }
 
     private fun setIsLoading(value: Boolean) {
-        store.dispatchState(newState = store.state.copy(isLoading = value))
+        store.dispatchState(newState = currentState.copy(isLoading = value))
     }
 
     override fun onCleared() {

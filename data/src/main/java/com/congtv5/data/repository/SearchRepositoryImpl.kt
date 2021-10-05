@@ -8,6 +8,9 @@ import com.congtv5.domain.Resource
 import com.congtv5.domain.model.MovieListPage
 import com.congtv5.domain.repository.SearchRepository
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
+import java.io.IOException
+import java.net.SocketTimeoutException
 
 class SearchRepositoryImpl(
     private var searchApi: SearchApi,
@@ -23,7 +26,11 @@ class SearchRepositoryImpl(
             try {
                 val movieList = searchApi.getSearchResultList(pageNumber, query)
                 Resource.Success(movieListPageMapper.map(movieList))
-            } catch (e: Exception) {
+            } catch (e: IOException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: HttpException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: SocketTimeoutException) {
                 Resource.Error(NETWORK_ERROR_MESSAGE)
             }
         }

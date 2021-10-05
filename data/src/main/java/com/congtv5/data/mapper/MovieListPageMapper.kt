@@ -41,7 +41,8 @@ class MovieMapper @Inject constructor() : Mapper<MovieResponse, Movie>() {
             posterPath = response.posterPath ?: EMPTY_TEXT,
             releaseDate = response.releaseDate ?: EMPTY_TEXT,
             title = response.title ?: EMPTY_TEXT,
-            voteAverage = response.voteAverage ?: 0.0
+            voteAverage = response.voteAverage ?: 0.0,
+            runtime = 0 // default
         )
     }
 

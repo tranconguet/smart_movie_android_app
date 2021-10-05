@@ -7,7 +7,6 @@ data class MovieDetail(
     val posterPath: String,
     val productionCountries: List<ProductionCountry>,
     val releaseDate: String,
-    val revenue: Int,
     val runtime: Int,
     val spokenLanguages: List<SpokenLanguage>,
     val title: String,

@@ -2,7 +2,9 @@ package com.congtv5.smartmovie.ui.base.fragment
 
 import android.view.View
 import android.widget.AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL
+import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,7 +21,7 @@ import com.congtv5.smartmovie.ui.viewmodel.home.HomeViewModel
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
 import kotlinx.coroutines.flow.collect
 
-abstract class MovieListFragment : BaseFragment() {
+abstract class BaseMovieListFragment : BaseFragment() {
 
     lateinit var homeViewModel: HomeViewModel
     lateinit var movieListViewModel: BaseMovieListViewModel
@@ -27,6 +29,10 @@ abstract class MovieListFragment : BaseFragment() {
     private lateinit var rvMovieList: RecyclerView
     private lateinit var prbLoadMore: ProgressBar
     private lateinit var rlRefresh: SwipeRefreshLayout
+    private lateinit var prbLoading: ProgressBar
+    private lateinit var layoutError: LinearLayout
+    private lateinit var tvReload: TextView
+
     // calculate for load more
     private var isScrolling = false
     private var totalItemNumber = 0
@@ -46,10 +52,12 @@ abstract class MovieListFragment : BaseFragment() {
         rvMovieList = view.findViewById(R.id.rvMovieList)
         prbLoadMore = view.findViewById(R.id.prbLoadMore)
         rlRefresh = view.findViewById(R.id.rlRefresh)
+        prbLoading = view.findViewById(R.id.prbLoading)
+        layoutError = view.findViewById(R.id.layoutError)
+        tvReload = view.findViewById(R.id.tvReload)
     }
 
     override fun initObserveData() {
-        initViewModel()
         // shared viewModel to change displayType
         homeViewModel.store.observeAnyway(
             owner = viewLifecycleOwner,
@@ -76,9 +84,9 @@ abstract class MovieListFragment : BaseFragment() {
 
         movieListViewModel.store.observeAnyway(
             owner = viewLifecycleOwner,
-            selector = { state -> state.isReloading },
-            observer = { isReloading ->
-                if (!isReloading) rlRefresh.isRefreshing = false
+            selector = { state -> state.isLoading },
+            observer = { isLoading ->
+                handleLoading(isLoading)
             }
         )
 
@@ -92,7 +100,23 @@ abstract class MovieListFragment : BaseFragment() {
 
     }
 
+    private fun handleLoading(loading: Boolean) {
+        if (loading) {
+            prbLoading.visibility = View.VISIBLE
+            layoutError.visibility = View.INVISIBLE
+        } else if (!loading && movieListViewModel.currentState.isError) {
+            rlRefresh.isRefreshing = false
+            prbLoading.visibility = View.INVISIBLE
+            layoutError.visibility = View.VISIBLE
+        } else {
+            rlRefresh.isRefreshing = false
+            prbLoading.visibility = View.INVISIBLE
+            layoutError.visibility = View.INVISIBLE
+        }
+    }
+
     override fun initData() {
+        initViewModel()
         // get item from home page
         if (movieListViewModel.store.state.currentPage == 0) {
             getFirstMovieListPage()?.let { movieListPage ->
@@ -109,6 +133,9 @@ abstract class MovieListFragment : BaseFragment() {
     override fun initAction() {
         initScrollAction()
         rlRefresh.setOnRefreshListener {
+            reloadData()
+        }
+        tvReload.setOnClickListener {
             reloadData()
         }
     }
@@ -212,4 +239,5 @@ abstract class MovieListFragment : BaseFragment() {
     private fun isMovieFavorite(movieId: Int): Boolean {
         return homeViewModel.isMovieFavorite(movieId)
     }
+
 }

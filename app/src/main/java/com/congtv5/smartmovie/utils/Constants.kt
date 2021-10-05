@@ -11,6 +11,6 @@ object Constants {
     const val TOP_RATED_TEXT = "Top Rated"
     const val NOW_PLAYING_TEXT = "Now Playing"
     const val UP_COMING_TEXT = "Up Coming"
-    const val NETWORK_ERROR_MESSAGE = "Network error"
     const val EMPTY_TEXT = ""
+    const val TIME_OUT = 30L
 }

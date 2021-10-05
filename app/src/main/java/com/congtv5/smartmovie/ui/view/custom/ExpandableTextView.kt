@@ -1,4 +1,4 @@
-package com.congtv5.smartmovie.ui.custom
+package com.congtv5.smartmovie.ui.view.custom
 
 import android.content.Context
 import android.util.AttributeSet

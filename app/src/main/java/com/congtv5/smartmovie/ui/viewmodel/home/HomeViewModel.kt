@@ -3,15 +3,15 @@ package com.congtv5.smartmovie.ui.viewmodel.home
 import androidx.lifecycle.viewModelScope
 import com.congtv5.domain.Resource
 import com.congtv5.domain.model.FavoriteMovie
-import com.congtv5.domain.model.Movie
+import com.congtv5.domain.model.MovieListPage
 import com.congtv5.domain.usecase.*
 import com.congtv5.smartmovie.ui.base.viewmodel.BaseViewModel
 import com.congtv5.smartmovie.ui.viewstate.HomeViewState
-import com.congtv5.smartmovie.utils.Constants.NETWORK_ERROR_MESSAGE
 import com.congtv5.smartmovie.utils.MovieCategory
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,16 +21,13 @@ class HomeViewModel @Inject constructor(
     private val getUpComingMovieListPageUseCase: GetUpComingMovieListPageUseCase,
     private val getNowPlayingMovieListPageUseCase: GetNowPlayingMovieListPageUseCase,
     private val getFavoriteMovieListUseCase: GetFavoriteMovieListUseCase,
-    private val insertFavoriteMovieUseCase: InsertFavoriteMovieUseCase
+    private val insertFavoriteMovieUseCase: InsertFavoriteMovieUseCase,
+    private val getMovieDetailUseCase: GetMovieDetailUseCase
 ) : BaseViewModel<HomeViewState>() {
 
     private var loadFavoriteMovieJob: Job? = null
     private var insertFavoriteMovieJob: Job? = null
     private var loadMovieListJob: Job? = null
-
-    companion object {
-        const val ITEM_PER_SECTION = 4
-    }
 
     private var _favoriteList = listOf<FavoriteMovie>()
 
@@ -41,11 +38,7 @@ class HomeViewModel @Inject constructor(
             currentDisplayType = MovieItemDisplayType.GRID,
             currentPageType = null,
             favoriteList = null,
-            movieSectionMap = mutableMapOf(),
-            popularMovieFirstPage = null,
-            topRatedMovieFirstPage = null,
-            nowPlayingMovieFirstPage = null,
-            upComingMovieFirstPage = null
+            movieSectionMap = getEmptySectionMap()
         )
     }
 
@@ -57,7 +50,7 @@ class HomeViewModel @Inject constructor(
         loadFavoriteMovieJob?.cancel()
         loadFavoriteMovieJob = viewModelScope.launch {
             val favList = getFavoriteMovieListUseCase.execute()
-            store.dispatchState(newState = store.state.copy(favoriteList = favList))
+            store.dispatchState(newState = currentState.copy(favoriteList = favList))
         }
     }
 
@@ -75,10 +68,10 @@ class HomeViewModel @Inject constructor(
     }
 
     fun applyFavoriteToAllMovie(favList: List<FavoriteMovie>) {
-        val sectionMap = store.state.movieSectionMap
+        val sectionMap = currentState.movieSectionMap
         sectionMap.map { entry ->
             if (entry.value is Resource.Success) {
-                val currentList = (entry.value as? Resource.Success<List<Movie>>)?.data
+                val currentList = entry.value?.data?.results
                 currentList?.forEach { movie ->
                     val favMovieReference =
                         favList.find { favMovie -> favMovie.movieId == movie.id }
@@ -86,162 +79,74 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
-        store.dispatchState(newState = store.state.copy(movieSectionMap = sectionMap))
+        store.dispatchState(newState = currentState.copy(movieSectionMap = sectionMap))
     }
 
     fun getMovieListToInitAllPage() {
+        setIsError(false)
         setIsLoading(true)
         clearAllData()
         loadMovieListJob?.cancel()
-        loadMovieListJob = viewModelScope.launch { // combine coroutine
-            coroutineScope {
-                getPopularMovieListPageFirstLaunch()
+        loadMovieListJob = viewModelScope.launch {
+            val popularUseCase = async {
+                getPopularMovieListPageUseCase.execute(1)
             }
-            coroutineScope {
-                getTopRatedMovieListPageFirstLaunch()
+            val topRatedUseCase = async {
+                getTopRatedMovieListPageUseCase.execute(1)
             }
-            coroutineScope {
-                getUpComingMovieListPageFirstLaunch()
+            val upComingUseCase = async {
+                getUpComingMovieListPageUseCase.execute(1)
             }
-            coroutineScope {
-                getNowPlayingMovieListPageFirstLaunch()
+            val nowPlayingUseCase = async {
+                getNowPlayingMovieListPageUseCase.execute(1)
             }
-        }
-    }
-
-    private suspend fun getPopularMovieListPageFirstLaunch() {
-        when (val moviesResource = getPopularMovieListPageUseCase.execute(1)) {
-            is Resource.Success -> {
-                moviesResource.data?.let { moviePage ->
-                    store.dispatchState(newState = store.state.copy(popularMovieFirstPage = moviePage))
-                    val movieListForSection = if (moviePage.results.size >= ITEM_PER_SECTION) {
-                        moviePage.results.subList(0, ITEM_PER_SECTION)
-                    } else {
-                        // results from network less than 4
-                        moviePage.results
+            val rsList = listOf(
+                popularUseCase,
+                topRatedUseCase,
+                upComingUseCase,
+                nowPlayingUseCase
+            ).awaitAll()
+            rsList.forEach { resource ->
+                if (resource is Resource.Success) {
+                    resource.data?.results?.forEach { movie ->
+                        launch {
+                            val movieDetail = getMovieDetailUseCase.execute(movie.id)
+                            movie.runtime = movieDetail.data?.runtime ?: 0
+                        }
                     }
-                    updateSectionMap(
-                        MovieCategory.POPULAR,
-                        Resource.Success(movieListForSection)
-                    )
                 }
             }
-            else -> {
-                updateSectionMap(
-                    MovieCategory.POPULAR,
-                    Resource.Error(NETWORK_ERROR_MESSAGE)
-                )
+            val sectionMap = mutableMapOf<MovieCategory, Resource<MovieListPage>?>(
+                MovieCategory.POPULAR to rsList[0],
+                MovieCategory.TOP_RATED to rsList[1],
+                MovieCategory.UP_COMING to rsList[2],
+                MovieCategory.NOW_PLAYING to rsList[3],
+            )
+            if (sectionMap.values.any { it is Resource.Success }){
+                setIsError(false)
+            }else{
+                setIsError(true)
             }
-        }
-    }
-
-    private suspend fun getTopRatedMovieListPageFirstLaunch() {
-        when (val moviesResource = getTopRatedMovieListPageUseCase.execute(1)) {
-            is Resource.Success -> {
-                moviesResource.data?.let { moviePage ->
-                    store.dispatchState(newState = store.state.copy(topRatedMovieFirstPage = moviePage))
-                    val movieListForSection = if (moviePage.results.size >= ITEM_PER_SECTION) {
-                        moviePage.results.subList(0, ITEM_PER_SECTION)
-                    } else {
-                        // results from network less than 4
-                        moviePage.results
-                    }
-                    updateSectionMap(
-                        MovieCategory.TOP_RATED,
-                        Resource.Success(movieListForSection)
-                    )
-                }
-            }
-            else -> {
-                updateSectionMap(
-                    MovieCategory.TOP_RATED,
-                    Resource.Error(NETWORK_ERROR_MESSAGE)
-                )
-            }
-        }
-    }
-
-    private suspend fun getUpComingMovieListPageFirstLaunch() {
-        when (val moviesResource = getUpComingMovieListPageUseCase.execute(1)) {
-            is Resource.Success -> {
-                moviesResource.data?.let { moviePage ->
-                    store.dispatchState(newState = store.state.copy(upComingMovieFirstPage = moviePage))
-                    val movieListForSection = if (moviePage.results.size >= ITEM_PER_SECTION) {
-                        moviePage.results.subList(0, ITEM_PER_SECTION)
-                    } else {
-                        // results from network less than 4
-                        moviePage.results
-                    }
-                    updateSectionMap(
-                        MovieCategory.UP_COMING,
-                        Resource.Success(movieListForSection)
-                    )
-                }
-            }
-            else -> {
-                updateSectionMap(
-                    MovieCategory.UP_COMING,
-                    Resource.Error(NETWORK_ERROR_MESSAGE)
-                )
-            }
-        }
-    }
-
-    private suspend fun getNowPlayingMovieListPageFirstLaunch() {
-        when (val moviesResource = getNowPlayingMovieListPageUseCase.execute(1)) {
-            is Resource.Success -> {
-                moviesResource.data?.let { moviePage ->
-                    store.dispatchState(newState = store.state.copy(nowPlayingMovieFirstPage = moviePage))
-                    val movieListForSection = if (moviePage.results.size >= ITEM_PER_SECTION) {
-                        moviePage.results.subList(0, ITEM_PER_SECTION)
-                    } else {
-                        // results from network less than 4
-                        moviePage.results
-                    }
-                    updateSectionMap(
-                        MovieCategory.NOW_PLAYING,
-                        Resource.Success(movieListForSection)
-                    )
-                }
-            }
-            else -> {
-                updateSectionMap(
-                    MovieCategory.NOW_PLAYING,
-                    Resource.Error(NETWORK_ERROR_MESSAGE)
-                )
-            }
+            store.dispatchState(newState = currentState.copy(movieSectionMap = sectionMap))
+            setIsLoading(false)
         }
     }
 
     fun setDisplayType(value: MovieItemDisplayType, isLoading: Boolean) {
         // requirement: not allow toggle when loading
         if (!isLoading)
-            store.dispatchState(newState = store.state.copy(currentDisplayType = value))
+            store.dispatchState(newState = currentState.copy(currentDisplayType = value))
     }
 
-    private fun updateSectionMap(
-        sectionCategory: MovieCategory,
-        resource: Resource<List<Movie>>?
-    ) {
-        val newMap = mutableMapOf<MovieCategory, Resource<List<Movie>>?>()
-        newMap.putAll(store.state.movieSectionMap)
-        newMap[sectionCategory] = resource
-        store.dispatchState(newState = store.state.copy(movieSectionMap = newMap))
-    }
-
-    fun clearAllData() {
+    private fun clearAllData() {
         store.dispatchState(
-            newState = store.state.copy(
+            newState = currentState.copy(
                 movieSectionMap = mutableMapOf(
                     MovieCategory.POPULAR to null,
                     MovieCategory.TOP_RATED to null,
                     MovieCategory.UP_COMING to null,
                     MovieCategory.NOW_PLAYING to null
-                ),
-                popularMovieFirstPage = null,
-                nowPlayingMovieFirstPage = null,
-                topRatedMovieFirstPage = null,
-                upComingMovieFirstPage = null
+                )
             )
         )
     }
@@ -250,16 +155,16 @@ class HomeViewModel @Inject constructor(
         _favoriteList = favoriteList
     }
 
-    fun setIsLoading(value: Boolean) {
-        store.dispatchState(newState = store.state.copy(isLoading = value))
+    private fun setIsLoading(value: Boolean) {
+        store.dispatchState(newState = currentState.copy(isLoading = value))
     }
 
-    fun setIsError(value: Boolean) {
-        store.dispatchState(newState = store.state.copy(isError = value))
+    private fun setIsError(value: Boolean) {
+        store.dispatchState(newState = currentState.copy(isError = value))
     }
 
     fun setCurrentPageType(movieCategory: MovieCategory?) {
-        store.dispatchState(newState = store.state.copy(currentPageType = movieCategory))
+        store.dispatchState(newState = currentState.copy(currentPageType = movieCategory))
     }
 
     override fun onCleared() {
@@ -267,5 +172,14 @@ class HomeViewModel @Inject constructor(
         loadFavoriteMovieJob?.cancel()
         insertFavoriteMovieJob?.cancel()
         super.onCleared()
+    }
+
+    private fun getEmptySectionMap(): MutableMap<MovieCategory, Resource<MovieListPage>?> {
+        return mutableMapOf(
+            MovieCategory.POPULAR to null,
+            MovieCategory.TOP_RATED to null,
+            MovieCategory.UP_COMING to null,
+            MovieCategory.NOW_PLAYING to null
+        )
     }
 }

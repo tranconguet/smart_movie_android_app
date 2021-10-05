@@ -98,4 +98,42 @@
         app:layout_constraintStart_toStartOf="@+id/linearLayout2"
         app:layout_constraintTop_toBottomOf="@+id/tbMain" />
 
+
+    <LinearLayout
+        android:id="@+id/layoutError"
+        android:layout_width="@dimen/error_message_width"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/load_data_fail_string"
+            android:textColor="@color/black"
+            android:textSize="@dimen/error_notification_title_text_size" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/load_data_fail_message_string"
+            android:textColor="@color/black"
+            android:textSize="@dimen/error_notification_text_size" />
+
+        <TextView
+            android:id="@+id/tvReload"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_24dp"
+            android:text="@string/reload_string"
+            android:textColor="@color/blue"
+            android:textSize="@dimen/error_notification_title_text_size" />
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

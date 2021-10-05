@@ -24,7 +24,6 @@ class MovieDetailMapper @Inject constructor(
             posterPath = response.posterPath ?: EMPTY_TEXT,
             productionCountries = productCountryMapper.map(response.productionCountries ?: listOf()),
             releaseDate = response.releaseDate ?: EMPTY_TEXT,
-            revenue = response.revenue ?: 0,
             runtime = response.runtime ?: 0,
             voteAverage = response.voteAverage ?: 0.0,
             spokenLanguages = response.spokenLanguage?.let { spokenLanguage.map(it) } ?: listOf()

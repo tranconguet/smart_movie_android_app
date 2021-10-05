@@ -1,6 +1,5 @@
 package com.congtv5.smartmovie.ui.view.fragments.home
 
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -10,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.widget.ViewPager2
 import com.congtv5.domain.Resource
-import com.congtv5.domain.model.Movie
+import com.congtv5.domain.model.MovieListPage
 import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.base.fragment.BaseFragment
 import com.congtv5.smartmovie.ui.base.viewmodel.ViewModelFactory
@@ -59,7 +58,7 @@ class HomeFragment : BaseFragment() {
         ivDisplayType = view.findViewById(R.id.ivDisplayType)
         tvReload = view.findViewById(R.id.tvReload)
         layoutHome = view.findViewById(R.id.layoutHome)
-        errorNotification = view.findViewById(R.id.errorNotification)
+        errorNotification = view.findViewById(R.id.layoutError)
         prbMain = view.findViewById(R.id.prbMain)
     }
 
@@ -75,18 +74,8 @@ class HomeFragment : BaseFragment() {
 
         homeViewModel.store.observe(
             owner = this,
-            selector = { state -> state.isError },
-            observer = { isError ->
-                setUpError(isError)
-            }
-        )
-
-        homeViewModel.store.observe(
-            owner = this,
             selector = { state -> state.movieSectionMap },
             observer = { movieSectionMap ->
-                updateLoadingProgressBarBySectionMap(movieSectionMap)
-                updateIsErrorBySectionMap(movieSectionMap)
                 updateMovieSectionTab(movieSectionMap)
             }
         )
@@ -113,9 +102,10 @@ class HomeFragment : BaseFragment() {
                 if (movieCategory == null) {
                     viewPager.currentItem = 0 // navigate to allMovies page
                 } else {
+                    // navigate to other tab
                     val pageIndex = successLoadingCategories.indexOf(movieCategory)
                     if (pageIndex >= 0) {
-                        viewPager.currentItem = pageIndex + 1
+                        viewPager.currentItem = pageIndex + 1 // include allMovie Tab
                     }
                 }
             }
@@ -124,8 +114,7 @@ class HomeFragment : BaseFragment() {
     }
 
     override fun initData() {
-        Log.d("CongTV5", "HomeFragment #initData() called")
-        homeViewModel.getMovieListToInitAllPage()
+        loadInitData()
     }
 
     override fun initView() {
@@ -140,35 +129,15 @@ class HomeFragment : BaseFragment() {
         }
     }
 
-    private fun updateLoadingProgressBarBySectionMap(allMovieSections: Map<MovieCategory, Resource<List<Movie>>?>) {
-        // for loading
-        val isLoadingDone = allMovieSections.filter { item ->
-            item.value == null
-        }.isEmpty()
-        if (isLoadingDone) homeViewModel.setIsLoading(false)
-    }
-
-    private fun updateIsErrorBySectionMap(allMovieSections: Map<MovieCategory, Resource<List<Movie>>?>) {
-        // for loading
-        val isLoadingDone = allMovieSections.filter { item ->
-            item.value == null
-        }.isEmpty()
-        val isError = allMovieSections.filter { item ->
-            item.value is Resource.Success
-        }.isEmpty()
-        if (isLoadingDone && isError) homeViewModel.setIsError(true)
-    }
-
-    private fun updateMovieSectionTab(allMovieSections: Map<MovieCategory, Resource<List<Movie>>?>) {
+    private fun updateMovieSectionTab(allMovieSections: Map<MovieCategory, Resource<MovieListPage>?>) {
         // prepare data to show
         val fragments = mutableListOf<Fragment>(AllMovieFragment())
         val fragmentNames = mutableListOf(MOVIES_TEXT) // movies tab is default
         val movieCategories = mutableListOf<MovieCategory>()
 
-        val successLoadingCategory = allMovieSections.filter { item ->
+        allMovieSections.filter { item ->
             item.value is Resource.Success
-        }
-        successLoadingCategory.keys.forEach { movieCategory ->
+        }.keys.forEach { movieCategory ->
             fragments.add(getFragmentByMovieCategory(movieCategory))
             movieCategories.add(movieCategory)
             fragmentNames.add(movieCategory.text)
@@ -182,40 +151,32 @@ class HomeFragment : BaseFragment() {
 
 
     private fun reloadInitData() {
-        if (homeViewModel.store.state.isError) {
-            homeViewModel.setIsError(false)
-            loadInitData()
-        }
+        loadInitData()
     }
 
     private fun loadInitData() {
-        homeViewModel.setIsLoading(true)
         successLoadingCategories.clear()
-        homeViewModel.clearAllData()
         homeViewModel.getMovieListToInitAllPage()
-    }
-
-    private fun setUpError(isError: Boolean) {
-        if (isError) {
-            errorNotification.visibility = View.VISIBLE
-        } else {
-            errorNotification.visibility = View.INVISIBLE
-        }
     }
 
     private fun setUpProgressBar(isLoading: Boolean) {
         if (isLoading) {
             prbMain.visibility = View.VISIBLE
+            errorNotification.visibility = View.INVISIBLE
+            layoutHome.visibility = View.INVISIBLE
+        } else if (!isLoading && homeViewModel.currentState.isError) {
+            errorNotification.visibility = View.VISIBLE
+            prbMain.visibility = View.INVISIBLE
             layoutHome.visibility = View.INVISIBLE
         } else {
             prbMain.visibility = View.INVISIBLE
+            errorNotification.visibility = View.INVISIBLE
             layoutHome.visibility = View.VISIBLE
         }
     }
 
     private fun initViewPager(fragments: List<Fragment>, fragmentNames: List<String>) {
         val listTypeAdapter = MovieListTypePagerAdapter(this, fragments)
-
         viewPager.adapter = listTypeAdapter
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
@@ -223,13 +184,14 @@ class HomeFragment : BaseFragment() {
                 if (position == 0) {
                     homeViewModel.setCurrentPageType(null)
                 } else {
-                    if(successLoadingCategories.size > position){
+                    if (successLoadingCategories.size > position) {
                         val currentPage = successLoadingCategories[position - 1]
                         homeViewModel.setCurrentPageType(currentPage)
                     }
                 }
             }
         })
+        viewPager.offscreenPageLimit = fragments.size // make fragment not be destroyed automatically
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = fragmentNames[position]
         }.attach()
@@ -237,18 +199,24 @@ class HomeFragment : BaseFragment() {
 
     private fun toggleDisplayType() {
         if (homeViewModel.store.state.currentDisplayType == MovieItemDisplayType.GRID) {
-            homeViewModel.setDisplayType(MovieItemDisplayType.VERTICAL_LINEAR, homeViewModel.store.state.isLoading)
+            homeViewModel.setDisplayType(
+                MovieItemDisplayType.VERTICAL_LINEAR,
+                homeViewModel.store.state.isLoading
+            )
         } else {
-            homeViewModel.setDisplayType(MovieItemDisplayType.GRID, homeViewModel.store.state.isLoading)
+            homeViewModel.setDisplayType(
+                MovieItemDisplayType.GRID,
+                homeViewModel.store.state.isLoading
+            )
         }
     }
 
     private fun getFragmentByMovieCategory(movieCategory: MovieCategory): Fragment {
         return when (movieCategory) {
-            MovieCategory.POPULAR -> PopularMovieFragment()
-            MovieCategory.TOP_RATED -> TopRatedMovieFragment()
-            MovieCategory.UP_COMING -> UpComingMovieFragment()
-            MovieCategory.NOW_PLAYING -> NowPlayingMovieFragment()
+            MovieCategory.POPULAR -> PopularBaseMovieFragment()
+            MovieCategory.TOP_RATED -> TopRatedBaseMovieFragment()
+            MovieCategory.UP_COMING -> UpComingBaseMovieFragment()
+            MovieCategory.NOW_PLAYING -> NowPlayingBaseMovieFragment()
         }
     }
 

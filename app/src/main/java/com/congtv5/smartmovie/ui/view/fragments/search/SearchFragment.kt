@@ -4,10 +4,7 @@ import android.app.Activity
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.AbsListView
-import android.widget.EditText
-import android.widget.ProgressBar
-import android.widget.TextView
+import android.widget.*
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,6 +25,8 @@ class SearchFragment : BaseFragment() {
     private lateinit var rvSearchResultList: RecyclerView
     private lateinit var prbLoadMore: ProgressBar
     private lateinit var prbSearch: ProgressBar
+    private lateinit var layoutError: LinearLayout
+    private lateinit var tvReload: TextView
 
     private var isScrolling = false // for load more
     private var totalItemNumber = 0
@@ -51,6 +50,8 @@ class SearchFragment : BaseFragment() {
         rvSearchResultList = view.findViewById(R.id.rvSearchResultList)
         prbLoadMore = view.findViewById(R.id.prbLoadMore)
         prbSearch = view.findViewById(R.id.prbLoading)
+        layoutError = view.findViewById(R.id.layoutError)
+        tvReload = view.findViewById(R.id.tvReload)
     }
 
     override fun initObserveData() {
@@ -92,12 +93,8 @@ class SearchFragment : BaseFragment() {
     private fun initAdapter() {
         rvSearchResultList.layoutManager = LinearLayoutManager(context)
         searchListAdapter = SearchResultListAdapter(
-            { movieId: Int ->
-                goToMovieDetailPage(movieId) // navigate to detail
-            },
-            { id ->
-                getGenreNameById(id) // for display genres
-            })
+            { movieId: Int -> goToMovieDetailPage(movieId) },
+            { id -> getGenreNameById(id) })
         rvSearchResultList.adapter = searchListAdapter
     }
 
@@ -115,6 +112,9 @@ class SearchFragment : BaseFragment() {
             hideKeyboard()
             clearEditText()
         }
+        tvReload.setOnClickListener {
+            searchMovie()
+        }
     }
 
     private fun searchMovie() {
@@ -130,24 +130,10 @@ class SearchFragment : BaseFragment() {
         return searchViewModel.getGenreNameById(genreId)
     }
 
-    private fun clearEditText() {
-        edtSearch.text.clear()
-    }
-
     private fun updateMovieList(movieListPagers: List<MovieListPage>) {
         val movieList = mutableListOf<Movie>()
         movieListPagers.forEach { movieList.addAll(it.results) }
         searchListAdapter?.submitList(movieList)
-    }
-
-    private fun goToMovieDetailPage(movieId: Int) {
-        val action = SearchFragmentDirections.actionSearchFragmentToMovieDetailFragment(movieId)
-        findNavController().navigate(action)
-    }
-
-    private fun hideKeyboard() {
-        val imm = context?.getSystemService(Activity.INPUT_METHOD_SERVICE)
-        (imm as? InputMethodManager)?.hideSoftInputFromWindow(view?.windowToken, 0)
     }
 
     private fun initScrollAction() {
@@ -189,8 +175,13 @@ class SearchFragment : BaseFragment() {
     private fun setProgressBar(isLoading: Boolean) {
         if (isLoading) {
             prbSearch.visibility = View.VISIBLE
+            layoutError.visibility = View.INVISIBLE
+        } else if (!isLoading && searchViewModel.currentState.isError) {
+            prbSearch.visibility = View.INVISIBLE
+            layoutError.visibility = View.VISIBLE
         } else {
             prbSearch.visibility = View.INVISIBLE
+            layoutError.visibility = View.INVISIBLE
         }
     }
 
@@ -202,5 +193,18 @@ class SearchFragment : BaseFragment() {
         }
     }
 
+    private fun hideKeyboard() {
+        val imm = context?.getSystemService(Activity.INPUT_METHOD_SERVICE)
+        (imm as? InputMethodManager)?.hideSoftInputFromWindow(view?.windowToken, 0)
+    }
+
+    private fun clearEditText() {
+        edtSearch.text.clear()
+    }
+
+    private fun goToMovieDetailPage(movieId: Int) {
+        val action = SearchFragmentDirections.actionSearchFragmentToMovieDetailFragment(movieId)
+        findNavController().navigate(action)
+    }
 
 }

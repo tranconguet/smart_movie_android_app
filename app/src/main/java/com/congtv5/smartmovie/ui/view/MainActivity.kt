@@ -30,7 +30,6 @@ class MainActivity : BaseActivity() {
         toolbar = findViewById(R.id.tbMain)
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initView()

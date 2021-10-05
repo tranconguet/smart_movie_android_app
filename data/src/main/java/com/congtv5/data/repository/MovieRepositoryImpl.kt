@@ -1,6 +1,5 @@
 package com.congtv5.data.repository
 
-import android.util.Log
 import com.congtv5.data.data.remote.MovieApi
 import com.congtv5.data.mapper.CastAndCrewMapper
 import com.congtv5.data.mapper.MovieDetailMapper
@@ -12,8 +11,10 @@ import com.congtv5.domain.model.CastAndCrew
 import com.congtv5.domain.model.MovieDetail
 import com.congtv5.domain.model.MovieListPage
 import com.congtv5.domain.repository.MovieRepository
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
+import java.io.IOException
+import java.net.SocketTimeoutException
 
 class MovieRepositoryImpl(
     private val movieApi: MovieApi,
@@ -28,7 +29,11 @@ class MovieRepositoryImpl(
             try {
                 val movieDetail = movieApi.getMovieDetails(movieId)
                 Resource.Success(movieDetailMapper.map(movieDetail))
-            } catch (e: Exception) {
+            } catch (e: IOException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: HttpException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: SocketTimeoutException) {
                 Resource.Error(NETWORK_ERROR_MESSAGE)
             }
         }
@@ -38,25 +43,27 @@ class MovieRepositoryImpl(
         return withContext(dispatcherProvider.io) {
             try {
                 val castAndCrew = movieApi.getCastAndCrewList(movieId)
-                val data = castAndCrewMapper.map(
-                    castAndCrew
-                )
-                Log.d("CongTV5", "MovieRepositoryImpl #getCastAndCrewList castAndCrew $data")
                 Resource.Success(castAndCrewMapper.map(castAndCrew))
-            } catch (e: Exception) {
-                Log.d("CongTV5", "MovieRepositoryImpl #getCastAndCrewList  Error $e")
+            } catch (e: IOException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: HttpException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: SocketTimeoutException) {
                 Resource.Error(NETWORK_ERROR_MESSAGE)
             }
         }
     }
 
     override suspend fun getPopularMovieList(pageNumber: Int): Resource<MovieListPage> {
-        delay(1000L) // for testing
         return withContext(dispatcherProvider.io) {
             try {
                 val movieList = movieApi.getPopularMovieList(pageNumber)
                 Resource.Success(movieListPageMapper.map(movieList))
-            } catch (e: Exception) {
+            } catch (e: IOException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: HttpException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: SocketTimeoutException) {
                 Resource.Error(NETWORK_ERROR_MESSAGE)
             }
         }
@@ -67,7 +74,11 @@ class MovieRepositoryImpl(
             try {
                 val movieList = movieApi.getTopRatedMovieList(pageNumber)
                 Resource.Success(movieListPageMapper.map(movieList))
-            } catch (e: Exception) {
+            } catch (e: IOException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: HttpException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: SocketTimeoutException) {
                 Resource.Error(NETWORK_ERROR_MESSAGE)
             }
         }
@@ -78,7 +89,11 @@ class MovieRepositoryImpl(
             try {
                 val movieList = movieApi.getUpComingMovieList(pageNumber)
                 Resource.Success(movieListPageMapper.map(movieList))
-            } catch (e: Exception) {
+            } catch (e: IOException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: HttpException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: SocketTimeoutException) {
                 Resource.Error(NETWORK_ERROR_MESSAGE)
             }
         }
@@ -89,7 +104,11 @@ class MovieRepositoryImpl(
             try {
                 val movieList = movieApi.getNowPlayingMovieList(pageNumber)
                 Resource.Success(movieListPageMapper.map(movieList))
-            } catch (e: Exception) {
+            } catch (e: IOException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: HttpException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: SocketTimeoutException) {
                 Resource.Error(NETWORK_ERROR_MESSAGE)
             }
         }

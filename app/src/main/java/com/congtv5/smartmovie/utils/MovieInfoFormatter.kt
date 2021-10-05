@@ -1,6 +1,7 @@
 package com.congtv5.smartmovie.utils
 
 import com.congtv5.domain.model.Genre
+import com.congtv5.smartmovie.utils.Constants.EMPTY_TEXT
 import java.text.DateFormatSymbols
 import java.util.*
 
@@ -14,9 +15,9 @@ class MovieInfoFormatter {
         return if (genres.isNotEmpty()) {
             genres.joinToString("") { genre ->
                 "${genre.name} | "
-            }.dropLast(2)
+            }.dropLast(2) // remove last " |"
         } else {
-            Constants.EMPTY_TEXT
+            EMPTY_TEXT
         }
     }
 
@@ -39,7 +40,7 @@ class MovieInfoFormatter {
         return if (country.isNotBlank()) {
             "(${country})"
         } else {
-            Constants.EMPTY_TEXT
+            EMPTY_TEXT
         }
     }
 
@@ -53,7 +54,7 @@ class MovieInfoFormatter {
             "$month ${date}, $year"
         } else {
             // api result fail
-            Constants.EMPTY_TEXT
+            EMPTY_TEXT
         }
     }
 
@@ -63,7 +64,7 @@ class MovieInfoFormatter {
         return when {
             hours > 0 -> "${hours}h ${minutes}m"
             hours == 0 -> "${minutes}m"
-            else -> Constants.EMPTY_TEXT // api result fail
+            else -> EMPTY_TEXT // api result fail
         }
     }
 

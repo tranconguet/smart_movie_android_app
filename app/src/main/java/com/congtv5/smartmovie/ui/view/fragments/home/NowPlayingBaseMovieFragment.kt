@@ -4,13 +4,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.congtv5.domain.model.MovieListPage
 import com.congtv5.smartmovie.R
-import com.congtv5.smartmovie.ui.base.fragment.MovieListFragment
+import com.congtv5.smartmovie.ui.base.fragment.BaseMovieListFragment
 import com.congtv5.smartmovie.ui.base.viewmodel.ViewModelFactory
 import com.congtv5.smartmovie.ui.viewmodel.home.HomeViewModel
-import com.congtv5.smartmovie.ui.viewmodel.home.PopularListViewModel
+import com.congtv5.smartmovie.ui.viewmodel.home.NowPlayingListViewModel
+import com.congtv5.smartmovie.utils.MovieCategory
 import javax.inject.Inject
 
-class PopularMovieFragment : MovieListFragment() {
+class NowPlayingBaseMovieFragment : BaseMovieListFragment() {
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
@@ -19,10 +20,10 @@ class PopularMovieFragment : MovieListFragment() {
     }
 
     @Inject
-    lateinit var popularListViewModel: PopularListViewModel
+    lateinit var nowPlayingViewModel: NowPlayingListViewModel
 
     override fun getLayoutID(): Int {
-        return R.layout.fragment_popular_movie
+        return R.layout.fragment_now_playing_movie
     }
 
     override fun initInjection() {
@@ -31,11 +32,11 @@ class PopularMovieFragment : MovieListFragment() {
 
     override fun initViewModel() {
         homeViewModel = myHomeViewModel
-        movieListViewModel = popularListViewModel
+        movieListViewModel = nowPlayingViewModel
     }
 
     override fun getFirstMovieListPage(): MovieListPage? {
-        return homeViewModel.store.state.popularMovieFirstPage
+        return homeViewModel.currentState.movieSectionMap[MovieCategory.NOW_PLAYING]?.data
     }
 
     override fun goToMovieDetailPage(movieId: Int) {

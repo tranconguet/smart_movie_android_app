@@ -27,6 +27,7 @@ class SearchViewModel @Inject constructor(
             currentPage = 0,
             isLoading = false,
             isLoadingMore = false,
+            isError = false,
             moviePages = mutableListOf()
         )
     }
@@ -37,7 +38,7 @@ class SearchViewModel @Inject constructor(
             when (val genresResource = getGenreListUseCase.execute()) {
                 is Resource.Success -> {
                     genresResource.data?.let { newList ->
-                        store.dispatchState(newState = store.state.copy(genreList = newList))
+                        store.dispatchState(newState = currentState.copy(genreList = newList))
                     }
                 }
                 else -> {
@@ -48,62 +49,54 @@ class SearchViewModel @Inject constructor(
     }
 
     fun getNextMovieListPage() {
+        setIsError(false)
         handleLoadingState(true)
         viewModelScope.launch {
             when (val moviesResource =
                 getSearchMovieListPageUseCase.execute(
-                    query = store.state.currentQuery,
-                    page = store.state.currentPage + 1,
+                    query = currentState.currentQuery,
+                    page = currentState.currentPage + 1,
                 )) {
                 is Resource.Success -> {
                     moviesResource.data?.let { newList ->
                         increasePage()
                         addResultListPage(newList)
                     }
-                    handleLoadingState(false)
                 }
                 is Resource.Error -> {
-                    handleLoadingState(false)
+                    setIsError(true)
                 }
             }
+            handleLoadingState(false)
         }
     }
 
     private fun addResultListPage(newList: MovieListPage) {
-        store.state.moviePages.add(newList)
-        store.dispatchState(newState = store.state.copy(moviePages = store.state.moviePages))
+        currentState.moviePages.add(newList)
+        store.dispatchState(newState = currentState.copy(moviePages = currentState.moviePages))
     }
 
     private fun increasePage() {
-        store.dispatchState(newState = store.state.copy(currentPage = store.state.currentPage + 1))
+        store.dispatchState(newState = currentState.copy(currentPage = currentState.currentPage + 1))
     }
 
     fun setCurrentQuery(value: String) {
-        store.dispatchState(newState = store.state.copy(currentQuery = value))
+        store.dispatchState(newState = currentState.copy(currentQuery = value))
     }
 
     fun getGenreNameById(genreId: Int): String? {
-        return store.state.genreList.find { genre -> genre.id == genreId }?.name
-    }
-
-    fun clearResult() {
-        store.dispatchState(
-            newState = store.state.copy(
-                currentPage = 0,
-                moviePages = mutableListOf()
-            )
-        )
+        return currentState.genreList.find { genre -> genre.id == genreId }?.name
     }
 
     private fun handleLoadingState(isLoading: Boolean) {
         if (isLoading) {
-            if (store.state.moviePages.isNotEmpty()) {
+            if (currentState.moviePages.isNotEmpty()) {
                 setIsLoadingMore(true) // load more
             } else {
                 setIsLoading(true) // load first time
             }
         } else {
-            if (store.state.isLoadingMore) {
+            if (currentState.isLoadingMore) {
                 setIsLoadingMore(false)
             } else {
                 setIsLoading(false)
@@ -112,11 +105,24 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun setIsLoadingMore(value: Boolean) {
-        store.dispatchState(newState = store.state.copy(isLoadingMore = value))
+        store.dispatchState(newState = currentState.copy(isLoadingMore = value))
     }
 
     private fun setIsLoading(value: Boolean) {
-        store.dispatchState(newState = store.state.copy(isLoading = value))
+        store.dispatchState(newState = currentState.copy(isLoading = value))
+    }
+
+    private fun setIsError(value: Boolean) {
+        store.dispatchState(newState = currentState.copy(isError = value))
+    }
+
+    fun clearResult() {
+        store.dispatchState(
+            newState = currentState.copy(
+                currentPage = 0,
+                moviePages = mutableListOf()
+            )
+        )
     }
 
     override fun onCleared() {

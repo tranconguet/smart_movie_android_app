@@ -9,5 +9,6 @@ data class SearchViewState(
     val currentPage: Int,
     val isLoadingMore: Boolean,
     val isLoading: Boolean,
+    val isError: Boolean,
     val moviePages: MutableList<MovieListPage>
 )

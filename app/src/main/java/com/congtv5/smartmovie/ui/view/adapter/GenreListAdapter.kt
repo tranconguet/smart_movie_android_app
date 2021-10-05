@@ -34,7 +34,7 @@ class GenreListAdapter(
                 if (genre != null){
                     onClickGenre.invoke(genre!!.id, genre!!.name)
                 }else{
-                    Log.d("CongTV5","GenreListAdapter #init genre value is null")
+                    Log.d("CongTV5","GenreViewHolder #init genre value is null")
                 }
             }
         }

@@ -156,7 +156,7 @@
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <com.congtv5.smartmovie.ui.custom.ExpandableTextView
+            <com.congtv5.smartmovie.ui.view.custom.ExpandableTextView
                 android:id="@+id/tvMovieDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

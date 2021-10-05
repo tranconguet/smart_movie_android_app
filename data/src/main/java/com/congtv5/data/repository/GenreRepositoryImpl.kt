@@ -11,7 +11,9 @@ import com.congtv5.domain.model.Genre
 import com.congtv5.domain.model.MovieListPage
 import com.congtv5.domain.repository.GenreRepository
 import kotlinx.coroutines.withContext
-
+import retrofit2.HttpException
+import java.io.IOException
+import java.net.SocketTimeoutException
 
 class GenreRepositoryImpl(
     private val genreApi: GenreApi,
@@ -26,7 +28,11 @@ class GenreRepositoryImpl(
             try {
                 val genreList = genreApi.getGenreList()
                 Resource.Success(genreMapper.map(genreList.genres ?: listOf()))
-            } catch (e: Exception) { // catch specific exception
+            } catch (e: IOException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: HttpException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: SocketTimeoutException) {
                 Resource.Error(NETWORK_ERROR_MESSAGE)
             }
         }
@@ -40,7 +46,11 @@ class GenreRepositoryImpl(
             try {
                 val movieListPage = discoverApi.getMovieListByGenre(genreId, pageNumber)
                 Resource.Success(movieListPageMapper.map(movieListPage))
-            } catch (e: Exception) {
+            } catch (e: IOException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: HttpException) {
+                Resource.Error(NETWORK_ERROR_MESSAGE)
+            } catch (e: SocketTimeoutException) {
                 Resource.Error(NETWORK_ERROR_MESSAGE)
             }
         }

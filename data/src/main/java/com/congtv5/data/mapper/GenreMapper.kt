@@ -18,4 +18,5 @@ class GenreMapper @Inject constructor() : Mapper<GenreResponse, Genre>() {
     override fun map(response: List<GenreResponse>): List<Genre> {
         return response.map { item -> map(item) }
     }
+
 }

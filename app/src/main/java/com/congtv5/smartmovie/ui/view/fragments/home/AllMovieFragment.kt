@@ -10,12 +10,12 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.congtv5.domain.Resource
 import com.congtv5.domain.model.FavoriteMovie
 import com.congtv5.domain.model.Movie
+import com.congtv5.domain.model.MovieListPage
 import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.base.fragment.BaseFragment
 import com.congtv5.smartmovie.ui.base.viewmodel.ViewModelFactory
 import com.congtv5.smartmovie.ui.view.adapter.MovieSectionListAdapter
 import com.congtv5.smartmovie.ui.view.model.MovieSection
-import com.congtv5.smartmovie.ui.viewmodel.home.AllMovieListViewModel
 import com.congtv5.smartmovie.ui.viewmodel.home.HomeViewModel
 import com.congtv5.smartmovie.utils.MovieCategory
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
@@ -24,14 +24,15 @@ import javax.inject.Inject
 
 class AllMovieFragment : BaseFragment() {
 
+    companion object {
+        const val ITEM_PER_SECTION = 4
+    }
+
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
     private val homeViewModel: HomeViewModel by lazy {
         ViewModelProvider(requireParentFragment(), viewModelFactory)[HomeViewModel::class.java]
     }
-
-    @Inject
-    lateinit var allMovieListViewModel: AllMovieListViewModel
 
     private var movieGridListAdapter: MovieSectionListAdapter? = null
     private var movieLinearListAdapter: MovieSectionListAdapter? = null
@@ -58,7 +59,6 @@ class AllMovieFragment : BaseFragment() {
             owner = this,
             selector = { state -> state.movieSectionMap },
             observer = { sectionMap ->
-                updateReloadingBarBySectionMap(sectionMap)
                 updateSections(sectionMap)
             }
         )
@@ -79,13 +79,6 @@ class AllMovieFragment : BaseFragment() {
             }
         }
 
-        allMovieListViewModel.store.observeAnyway(
-            owner = this,
-            selector = { state -> state.isLoading },
-            observer = { isLoading ->
-                rlRefresh.isRefreshing = isLoading
-            }
-        )
     }
 
     override fun initData() {
@@ -125,15 +118,25 @@ class AllMovieFragment : BaseFragment() {
             })
     }
 
-    private fun updateSections(sectionMap: Map<MovieCategory, Resource<List<Movie>>?>) {
+    private fun updateSections(sectionMap: Map<MovieCategory, Resource<MovieListPage>?>) {
         // get success loaded section
         val sectionList = sectionMap.filter { item ->
             item.value is Resource.Success
         }.map { item ->
-            MovieSection(item.key, item.value?.data ?: listOf())
+            val listForSection = getListForSection(item.value?.data?.results ?: listOf())
+            MovieSection(item.key, listForSection)
         }
         movieGridListAdapter?.submitList(sectionList)
         movieLinearListAdapter?.submitList(sectionList)
+    }
+
+    private fun getListForSection(movieList: List<Movie>): List<Movie> {
+        return if (movieList.size >= ITEM_PER_SECTION) {
+            movieList.subList(0, ITEM_PER_SECTION)
+        } else {
+            // results from network less than 4
+            movieList
+        }
     }
 
     private fun updateDisplayType(type: MovieItemDisplayType) {
@@ -156,18 +159,7 @@ class AllMovieFragment : BaseFragment() {
     }
 
     private fun reloadData() {
-        allMovieListViewModel.setIsReloading(true)
         homeViewModel.getMovieListToInitAllPage()
-    }
-
-    private fun updateReloadingBarBySectionMap(allMovieSections: Map<MovieCategory, Resource<List<Movie>>?>) {
-        // for loading
-        val isLoadingDone = allMovieSections.filter { item ->
-            item.value == null
-        }.isEmpty()
-        if (isLoadingDone) {
-            allMovieListViewModel.setIsReloading(false)
-        }
     }
 
     private fun goToMovieDetailPage(movieId: Int) {

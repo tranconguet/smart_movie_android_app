@@ -3,7 +3,6 @@ package com.congtv5.smartmovie.ui.view.fragments.moviedetail
 import android.view.View
 import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
@@ -12,8 +11,8 @@ import com.bumptech.glide.Glide
 import com.congtv5.domain.model.MovieDetail
 import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.base.fragment.BaseFragment
-import com.congtv5.smartmovie.ui.custom.ExpandableTextView
 import com.congtv5.smartmovie.ui.view.adapter.CastListAdapter
+import com.congtv5.smartmovie.ui.view.custom.ExpandableTextView
 import com.congtv5.smartmovie.ui.viewmodel.MovieDetailViewModel
 import com.congtv5.smartmovie.utils.Constants
 import com.congtv5.smartmovie.utils.Constants.EMPTY_TEXT
@@ -32,10 +31,7 @@ class MovieDetailFragment : BaseFragment() {
     lateinit var formatter: MovieInfoFormatter
 
     private val args: MovieDetailFragmentArgs by navArgs()
-
-
     private val castListAdapter = CastListAdapter()
-    private var navController: NavController? = null
 
     private lateinit var ivBackButton: ImageView
     private lateinit var ivMovieImage: ImageView
@@ -120,7 +116,6 @@ class MovieDetailFragment : BaseFragment() {
     }
 
     override fun initView() {
-        navController = findNavController()
         initAdapter()
     }
 

@@ -23,21 +23,9 @@ class FavoriteMovieRepositoryImpl(
         }
     }
 
-    override suspend fun getIsFavoriteMovie(movieId: Int): Boolean {
-        return withContext(dispatcherProvider.io) {
-            favoriteMovieDao.getFavoriteMovie(movieId).isLiked
-        }
-    }
-
     override suspend fun insertFavoriteMovie(movie: FavoriteMovie) {
         withContext(dispatcherProvider.io) {
             favoriteMovieDao.insertMovie(favoriteMovieMapper.mapToResponse(movie))
-        }
-    }
-
-    override suspend fun updateFavoriteMovie(movie: FavoriteMovie) {
-        withContext(dispatcherProvider.io) {
-            favoriteMovieDao.updateFavoriteMovie(movieId = movie.movieId, value = movie.isLiked)
         }
     }
 
