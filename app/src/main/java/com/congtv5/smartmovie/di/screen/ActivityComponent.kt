@@ -5,8 +5,8 @@ import com.congtv5.smartmovie.ui.view.MainActivity
 import dagger.Subcomponent
 
 @PerScreen
-@Subcomponent(modules = [ScreenModule::class])
-interface ScreenComponent {
+@Subcomponent(modules = [ActivityModule::class])
+interface ActivityComponent {
 
     fun inject(activity: MainActivity)
 

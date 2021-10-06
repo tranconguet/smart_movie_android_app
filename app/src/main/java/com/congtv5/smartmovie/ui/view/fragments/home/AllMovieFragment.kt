@@ -55,7 +55,7 @@ class AllMovieFragment : BaseFragment() {
 
     override fun initObserveData() {
 
-        homeViewModel.store.observeAnyway(
+        homeViewModel.store.observe(
             owner = this,
             selector = { state -> state.movieSectionMap },
             observer = { sectionMap ->
@@ -63,7 +63,7 @@ class AllMovieFragment : BaseFragment() {
             }
         )
 
-        homeViewModel.store.observeAnyway(
+        homeViewModel.store.observeDistinctValue(
             owner = this,
             selector = { state -> state.currentDisplayType },
             observer = { type ->
@@ -121,7 +121,7 @@ class AllMovieFragment : BaseFragment() {
         }.map { item ->
             val listForSection = getListForSection(item.value?.data?.results ?: listOf())
             MovieSection(item.key, listForSection)
-        }
+        }.toMutableList()
         movieGridListAdapter?.submitList(sectionList)
         movieLinearListAdapter?.submitList(sectionList)
     }

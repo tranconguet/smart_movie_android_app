@@ -10,6 +10,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.congtv5.data.utils.Constants
 import com.congtv5.domain.model.FavoriteMovie
 import com.congtv5.domain.model.Movie
 import com.congtv5.smartmovie.R
@@ -68,7 +69,6 @@ class MovieListAdapter(
 
             movieNameTextView.text = movie.title
             movieRunTimeTextView.text = movie.runtime.formatTime()
-
             if (movie.isFavoriteMovie) {
                 starImageView.setImageResource(R.drawable.star_active)
             } else {
@@ -169,6 +169,28 @@ class MovieListAdapter(
                 (holder as? MovieLinearItemViewHolder)?.bind(getItem(position))
             }
         }
+    }
+
+    override fun submitList(list: MutableList<Movie>?) {
+        val listCopy = mutableListOf<Movie>().apply {
+            list?.map { movie ->
+                add(
+                    Movie(
+                        id = movie.id,
+                        backdropPath = movie.backdropPath,
+                        genreIds = movie.genreIds,
+                        overview = movie.overview,
+                        posterPath = movie.posterPath,
+                        releaseDate = movie.releaseDate,
+                        title = movie.title,
+                        voteAverage = movie.voteAverage,
+                        isFavoriteMovie = movie.isFavoriteMovie,
+                        runtime = movie.runtime
+                    )
+                )
+            }
+        }
+        super.submitList(listCopy)
     }
 
 }

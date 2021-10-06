@@ -4,12 +4,12 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.congtv5.smartmovie.SmartMovieApplication
 import com.congtv5.smartmovie.di.application.ApplicationComponent
-import com.congtv5.smartmovie.di.screen.ScreenModule
+import com.congtv5.smartmovie.di.screen.ActivityModule
 
 abstract class BaseActivity : AppCompatActivity() {
 
     val screenComponent by lazy {
-        getApplicationComponent().plus(ScreenModule(this))
+        getApplicationComponent().plus(ActivityModule(this))
     }
 
     private fun getApplicationComponent(): ApplicationComponent {

@@ -10,7 +10,7 @@ class ViewStateStore<T>(
     val state: T
         get() = stateLiveData.value!!
 
-    fun <S> observeAnyway(
+    fun <S> observe(
         owner: LifecycleOwner,
         selector: (T) -> S,
         observer: Observer<S>
@@ -19,7 +19,7 @@ class ViewStateStore<T>(
             .observe(owner, observer)
     }
 
-    fun <S> observe(
+    fun <S> observeDistinctValue(
         owner: LifecycleOwner,
         selector: (T) -> S,
         observer: Observer<S>

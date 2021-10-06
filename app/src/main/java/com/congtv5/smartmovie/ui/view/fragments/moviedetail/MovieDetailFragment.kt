@@ -78,7 +78,7 @@ class MovieDetailFragment : BaseFragment() {
 
     override fun initObserveData() {
 
-        movieDetailViewModel.store.observe(
+        movieDetailViewModel.store.observeDistinctValue(
             owner = this,
             selector = { state -> state.isMovieInfoLoading },
             observer = { isMovieInfoLoading ->
@@ -86,7 +86,7 @@ class MovieDetailFragment : BaseFragment() {
             }
         )
 
-        movieDetailViewModel.store.observe(
+        movieDetailViewModel.store.observeDistinctValue(
             owner = this,
             selector = { state -> state.isCastLoading },
             observer = { isCastLoading ->
@@ -94,7 +94,7 @@ class MovieDetailFragment : BaseFragment() {
             }
         )
 
-        movieDetailViewModel.store.observe(
+        movieDetailViewModel.store.observeDistinctValue(
             owner = this,
             selector = { state -> state.isError },
             observer = { isError ->
@@ -102,7 +102,7 @@ class MovieDetailFragment : BaseFragment() {
             }
         )
 
-        movieDetailViewModel.store.observe(
+        movieDetailViewModel.store.observeDistinctValue(
             owner = this,
             selector = { state -> state.movieDetail },
             observer = { movieDetail ->
@@ -110,7 +110,7 @@ class MovieDetailFragment : BaseFragment() {
             }
         )
 
-        movieDetailViewModel.store.observe(
+        movieDetailViewModel.store.observeDistinctValue(
             owner = this,
             selector = { state -> state.casts },
             observer = { castList ->

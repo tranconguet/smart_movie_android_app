@@ -42,7 +42,7 @@ class GenreFragment : BaseFragment() {
 
     override fun initObserveData() {
 
-        genreListViewModel.store.observe(
+        genreListViewModel.store.observeDistinctValue(
             owner = this,
             selector = { state -> state.isLoading },
             observer = { isLoading ->

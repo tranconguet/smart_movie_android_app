@@ -42,6 +42,7 @@ class HomeViewModel @Inject constructor(
 
     init {
         getFavoriteList()
+        getMovieListToInitAllPage()
     }
 
     private fun getFavoriteList() {
@@ -60,8 +61,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun applyFavoriteToAllMovie(favList: List<FavoriteMovie>) {
-        val sectionMap = currentState.movieSectionMap
-        sectionMap.map { entry ->
+        currentState.movieSectionMap.map { entry ->
             if (entry.value is Resource.Success) {
                 val currentList = entry.value?.data?.results
                 currentList?.forEach { movie ->
@@ -71,7 +71,7 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
-        store.dispatchState(newState = currentState.copy(movieSectionMap = sectionMap))
+        store.dispatchState(newState = currentState.copy(movieSectionMap = currentState.movieSectionMap))
     }
 
     fun getMovieListToInitAllPage() {

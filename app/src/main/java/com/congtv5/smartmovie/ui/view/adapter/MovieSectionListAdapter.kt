@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.congtv5.domain.model.FavoriteMovie
+import com.congtv5.domain.model.Movie
 import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.view.adapter.diffutil.MovieSectionDiffUtil
 import com.congtv5.smartmovie.ui.view.fragments.home.HomeFragment.Companion.GRID_ITEM_PER_ROW
@@ -59,7 +60,7 @@ class MovieSectionListAdapter(
         fun bind(movieSection: MovieSection) {
             this.movieSection = movieSection
             movieSectionTitleTextView.text = movieSection.sectionType.text
-            movieListAdapter?.submitList(movieSection.movieList)
+            movieListAdapter?.submitList(movieSection.movieList.toMutableList())
         }
     }
 
@@ -79,4 +80,21 @@ class MovieSectionListAdapter(
     override fun onBindViewHolder(holder: MovieSectionViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
+
+    override fun submitList(list: MutableList<MovieSection>?) {
+        val listCopy = mutableListOf<MovieSection>().apply {
+            list?.map { movieSection ->
+                add(
+                    MovieSection(
+                        sectionType = movieSection.sectionType,
+                        movieList = mutableListOf<Movie>().apply {
+                            addAll(movieSection.movieList)
+                        }
+                    )
+                )
+            }
+        }
+        super.submitList(listCopy)
+    }
+
 }

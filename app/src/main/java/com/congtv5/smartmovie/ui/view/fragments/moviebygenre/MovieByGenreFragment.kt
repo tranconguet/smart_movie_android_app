@@ -54,15 +54,15 @@ class MovieByGenreFragment : BaseMovieListFragment() {
     override fun initObserveData() {
         super.initObserveData()
 
-        homeViewModel.store.observe(
+        homeViewModel.store.observeDistinctValue(
             owner = this,
             selector = { state -> state.currentDisplayType },
             observer = { type ->
-                when (type!!) {
+                when (type) {
                     MovieItemDisplayType.GRID -> {
                         displayTypeImageView.setImageResource(R.drawable.linear_display)
                     }
-                    MovieItemDisplayType.VERTICAL_LINEAR -> {
+                    else -> {
                         displayTypeImageView.setImageResource(R.drawable.grid_display)
                     }
                 }

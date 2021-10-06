@@ -6,7 +6,7 @@ import dagger.Module
 import dagger.Provides
 
 @Module
-class ScreenModule(private val activity: BaseActivity) {
+class ActivityModule(private val activity: BaseActivity) {
 
     @PerScreen
     @Provides

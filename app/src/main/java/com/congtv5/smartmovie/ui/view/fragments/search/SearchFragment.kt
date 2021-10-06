@@ -56,7 +56,7 @@ class SearchFragment : BaseFragment() {
 
     override fun initObserveData() {
 
-        searchViewModel.store.observeAnyway(
+        searchViewModel.store.observe(
             owner = this,
             selector = { state -> state.moviePages },
             observer = { movieListPage ->
@@ -64,7 +64,7 @@ class SearchFragment : BaseFragment() {
             }
         )
 
-        searchViewModel.store.observeAnyway(
+        searchViewModel.store.observeDistinctValue(
             owner = this,
             selector = { state -> state.isLoading },
             observer = { isLoading ->
@@ -72,7 +72,7 @@ class SearchFragment : BaseFragment() {
             }
         )
 
-        searchViewModel.store.observeAnyway(
+        searchViewModel.store.observeDistinctValue(
             owner = this,
             selector = { state -> state.isLoadingMore },
             observer = { isLoadingMore ->

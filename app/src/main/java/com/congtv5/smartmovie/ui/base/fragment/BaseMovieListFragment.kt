@@ -59,7 +59,7 @@ abstract class BaseMovieListFragment : BaseFragment() {
 
     override fun initObserveData() {
         // shared viewModel to change displayType
-        homeViewModel.store.observeAnyway(
+        homeViewModel.store.observeDistinctValue(
             owner = viewLifecycleOwner,
             selector = { state -> state.currentDisplayType },
             observer = { type ->
@@ -74,7 +74,7 @@ abstract class BaseMovieListFragment : BaseFragment() {
             }
         }
 
-        movieListViewModel.store.observeAnyway(
+        movieListViewModel.store.observe(
             owner = viewLifecycleOwner,
             selector = { state -> state.movieListPages },
             observer = { movieListPagers ->
@@ -82,7 +82,7 @@ abstract class BaseMovieListFragment : BaseFragment() {
             }
         )
 
-        movieListViewModel.store.observeAnyway(
+        movieListViewModel.store.observe(
             owner = viewLifecycleOwner,
             selector = { state -> state.isLoading },
             observer = { isLoading ->
@@ -90,7 +90,7 @@ abstract class BaseMovieListFragment : BaseFragment() {
             }
         )
 
-        movieListViewModel.store.observeAnyway(
+        movieListViewModel.store.observe(
             owner = viewLifecycleOwner,
             selector = { state -> state.isLoadingMore },
             observer = { isLoadingMore ->

@@ -64,7 +64,7 @@ class HomeFragment : BaseFragment() {
 
     override fun initObserveData() {
 
-        homeViewModel.store.observe(
+        homeViewModel.store.observeDistinctValue(
             owner = this,
             selector = { state -> state.isLoading },
             observer = { isLoading ->
@@ -72,7 +72,7 @@ class HomeFragment : BaseFragment() {
             }
         )
 
-        homeViewModel.store.observe(
+        homeViewModel.store.observeDistinctValue(
             owner = this,
             selector = { state -> state.movieSectionMap },
             observer = { movieSectionMap ->
@@ -80,22 +80,22 @@ class HomeFragment : BaseFragment() {
             }
         )
 
-        homeViewModel.store.observe(
+        homeViewModel.store.observeDistinctValue(
             owner = this,
             selector = { state -> state.currentDisplayType },
             observer = { type ->
-                when (type!!) {
+                when (type) {
                     MovieItemDisplayType.GRID -> {
                         displayTypeImageView.setImageResource(R.drawable.linear_display)
                     }
-                    MovieItemDisplayType.VERTICAL_LINEAR -> {
+                    else -> {
                         displayTypeImageView.setImageResource(R.drawable.grid_display)
                     }
                 }
             }
         )
 
-        homeViewModel.store.observe(
+        homeViewModel.store.observeDistinctValue(
             owner = this,
             selector = { state -> state.currentPageType },
             observer = { movieCategory ->
@@ -114,7 +114,6 @@ class HomeFragment : BaseFragment() {
     }
 
     override fun initData() {
-        loadInitData()
     }
 
     override fun initView() {
@@ -151,10 +150,6 @@ class HomeFragment : BaseFragment() {
 
 
     private fun reloadInitData() {
-        loadInitData()
-    }
-
-    private fun loadInitData() {
         successLoadingCategories.clear()
         homeViewModel.getMovieListToInitAllPage()
     }
