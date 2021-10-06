@@ -20,10 +20,10 @@ class GenreFragment : BaseFragment() {
 
     private var genreListAdapter: GenreListAdapter? = null
 
-    private lateinit var rvGenreList: RecyclerView
-    private lateinit var prbLoading: ProgressBar
-    private lateinit var tvReload: TextView
-    private lateinit var layoutError: LinearLayout
+    private lateinit var genreListRecyclerView: RecyclerView
+    private lateinit var loadingProgressBar: ProgressBar
+    private lateinit var reloadTextView: TextView
+    private lateinit var errorLayout: LinearLayout
 
     override fun getLayoutID(): Int {
         return R.layout.fragment_genre
@@ -34,10 +34,10 @@ class GenreFragment : BaseFragment() {
     }
 
     override fun initBinding(view: View) {
-        rvGenreList = view.findViewById(R.id.rvGenreList)
-        prbLoading = view.findViewById(R.id.prbLoading)
-        tvReload = view.findViewById(R.id.tvReload)
-        layoutError = view.findViewById(R.id.layoutError)
+        genreListRecyclerView = view.findViewById(R.id.rvGenreList)
+        loadingProgressBar = view.findViewById(R.id.prbLoading)
+        reloadTextView = view.findViewById(R.id.tvReload)
+        errorLayout = view.findViewById(R.id.layoutError)
     }
 
     override fun initObserveData() {
@@ -62,14 +62,14 @@ class GenreFragment : BaseFragment() {
 
     private fun handleLoading(isLoading: Boolean) {
         if (isLoading) {
-            prbLoading.visibility = View.VISIBLE
-            layoutError.visibility = View.INVISIBLE
+            loadingProgressBar.visibility = View.VISIBLE
+            errorLayout.visibility = View.INVISIBLE
         } else if (!isLoading && genreListViewModel.currentState.isError) {
-            prbLoading.visibility = View.INVISIBLE
-            layoutError.visibility = View.VISIBLE
+            loadingProgressBar.visibility = View.INVISIBLE
+            errorLayout.visibility = View.VISIBLE
         } else {
-            prbLoading.visibility = View.INVISIBLE
-            layoutError.visibility = View.INVISIBLE
+            loadingProgressBar.visibility = View.INVISIBLE
+            errorLayout.visibility = View.INVISIBLE
         }
     }
 
@@ -78,22 +78,21 @@ class GenreFragment : BaseFragment() {
     }
 
     override fun initView() {
-        rvGenreList.layoutManager = LinearLayoutManager(context)
+        genreListRecyclerView.layoutManager = LinearLayoutManager(context)
         genreListAdapter = GenreListAdapter { id, name ->
             genreOnClick(id, name)
         }
-        rvGenreList.adapter = genreListAdapter
+        genreListRecyclerView.adapter = genreListAdapter
     }
 
     override fun initAction() {
-        tvReload.setOnClickListener {
+        reloadTextView.setOnClickListener {
             genreListViewModel.getGenreList()
         }
     }
 
     private fun genreOnClick(genreId: Int, genreTitle: String) {
-        val action =
-            GenreFragmentDirections.actionGenreFragmentToMovieByGenreFragment(genreId, genreTitle)
+        val action = GenreFragmentDirections.actionGenreFragmentToMovieByGenreFragment(genreId, genreTitle)
         findNavController().navigate(action)
     }
 

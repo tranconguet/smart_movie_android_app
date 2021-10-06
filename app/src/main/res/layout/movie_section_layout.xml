@@ -12,7 +12,8 @@
         android:layout_margin="@dimen/grid_display_movie_item_margin"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/right_arrow" />
+        app:srcCompat="@drawable/right_arrow"
+        tools:ignore="ContentDescription" />
 
     <TextView
         android:id="@+id/tvMovieSection"

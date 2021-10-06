@@ -13,10 +13,9 @@ import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.base.fragment.BaseFragment
 import com.congtv5.smartmovie.ui.view.adapter.CastListAdapter
 import com.congtv5.smartmovie.ui.view.custom.ExpandableTextView
-import com.congtv5.smartmovie.ui.viewmodel.MovieDetailViewModel
-import com.congtv5.smartmovie.utils.Constants
+import com.congtv5.smartmovie.ui.viewmodel.moviedetail.MovieDetailViewModel
+import com.congtv5.smartmovie.utils.*
 import com.congtv5.smartmovie.utils.Constants.EMPTY_TEXT
-import com.congtv5.smartmovie.utils.MovieInfoFormatter
 import javax.inject.Inject
 
 class MovieDetailFragment : BaseFragment() {
@@ -27,26 +26,27 @@ class MovieDetailFragment : BaseFragment() {
 
     @Inject
     lateinit var movieDetailViewModel: MovieDetailViewModel
-    @Inject
-    lateinit var formatter: MovieInfoFormatter
 
     private val args: MovieDetailFragmentArgs by navArgs()
     private val castListAdapter = CastListAdapter()
 
-    private lateinit var ivBackButton: ImageView
-    private lateinit var ivMovieImage: ImageView
-    private lateinit var tvGenres: TextView
-    private lateinit var tvLanguages: TextView
-    private lateinit var tvMovieDescription: ExpandableTextView
-    private lateinit var tvMovieName: TextView
-    private lateinit var tvMovieTimeInfo: TextView
-    private lateinit var tvRating: TextView
-    private lateinit var rvCastList: RecyclerView
-    private lateinit var rbRatingBar: RatingBar
-    private lateinit var prbMovieInfo: ProgressBar
-    private lateinit var prbCast: ProgressBar
-    private lateinit var layoutMovieInfo: ConstraintLayout
-    private lateinit var layoutCast: LinearLayout
+    private lateinit var backButtonImageView: ImageView
+    private lateinit var movieImageView: ImageView
+    private lateinit var genresTextView: TextView
+    private lateinit var languagesTextView: TextView
+    private lateinit var movieDescriptionTextView: ExpandableTextView
+    private lateinit var movieNameTextView: TextView
+    private lateinit var movieTimeInfoTextView: TextView
+    private lateinit var ratingTextView: TextView
+    private lateinit var castListRecyclerView: RecyclerView
+    private lateinit var ratingBar: RatingBar
+    private lateinit var movieInfoLoadingProgressBar: ProgressBar
+    private lateinit var castLoadingProgressBar: ProgressBar
+    private lateinit var movieInfoLayout: ConstraintLayout
+    private lateinit var castLayout: LinearLayout
+    private lateinit var errorLayout: LinearLayout
+    private lateinit var contentScrollView: ScrollView
+    private lateinit var reloadTextView: TextView
 
     override fun getLayoutID(): Int {
         return R.layout.fragment_movie_detail
@@ -57,22 +57,24 @@ class MovieDetailFragment : BaseFragment() {
     }
 
     override fun initBinding(view: View) {
-        ivBackButton = view.findViewById(R.id.ivBackButton)
-        ivMovieImage = view.findViewById(R.id.ivMovieImage)
-        tvGenres = view.findViewById(R.id.tvGenres)
-        tvLanguages = view.findViewById(R.id.tvLanguages)
-        tvMovieDescription = view.findViewById(R.id.tvMovieDescription)
-        tvMovieName = view.findViewById(R.id.tvMovieName)
-        tvMovieTimeInfo = view.findViewById(R.id.tvMovieTimeInfo)
-        tvRating = view.findViewById(R.id.tvRating)
-        rvCastList = view.findViewById(R.id.rvCastList)
-        rbRatingBar = view.findViewById(R.id.rbRatingBar)
-        prbMovieInfo = view.findViewById(R.id.prbMovieInfo)
-        prbCast = view.findViewById(R.id.prbCast)
-        layoutMovieInfo = view.findViewById(R.id.layoutMovieInfo)
-        layoutCast = view.findViewById(R.id.layoutCast)
+        backButtonImageView = view.findViewById(R.id.ivBackButton)
+        movieImageView = view.findViewById(R.id.ivMovieImage)
+        genresTextView = view.findViewById(R.id.tvGenres)
+        languagesTextView = view.findViewById(R.id.tvLanguages)
+        movieDescriptionTextView = view.findViewById(R.id.tvMovieDescription)
+        movieNameTextView = view.findViewById(R.id.tvMovieName)
+        movieTimeInfoTextView = view.findViewById(R.id.tvMovieTimeInfo)
+        ratingTextView = view.findViewById(R.id.tvRating)
+        castListRecyclerView = view.findViewById(R.id.rvCastList)
+        ratingBar = view.findViewById(R.id.rbRatingBar)
+        movieInfoLoadingProgressBar = view.findViewById(R.id.prbMovieInfo)
+        castLoadingProgressBar = view.findViewById(R.id.prbCast)
+        movieInfoLayout = view.findViewById(R.id.layoutMovieInfo)
+        castLayout = view.findViewById(R.id.layoutCast)
+        errorLayout = view.findViewById(R.id.layoutError)
+        contentScrollView = view.findViewById(R.id.svContent)
+        reloadTextView = view.findViewById(R.id.tvReload)
     }
-
 
     override fun initObserveData() {
 
@@ -89,6 +91,14 @@ class MovieDetailFragment : BaseFragment() {
             selector = { state -> state.isCastLoading },
             observer = { isCastLoading ->
                 handleCastLoading(isCastLoading)
+            }
+        )
+
+        movieDetailViewModel.store.observe(
+            owner = this,
+            selector = { state -> state.isError },
+            observer = { isError ->
+                handleError(isError)
             }
         )
 
@@ -120,14 +130,17 @@ class MovieDetailFragment : BaseFragment() {
     }
 
     override fun initAction() {
-        ivBackButton.setOnClickListener {
+        backButtonImageView.setOnClickListener {
             findNavController().popBackStack()
+        }
+        reloadTextView.setOnClickListener {
+            reloadData()
         }
     }
 
     private fun initAdapter() {
-        rvCastList.adapter = castListAdapter
-        rvCastList.layoutManager =
+        castListRecyclerView.adapter = castListAdapter
+        castListRecyclerView.layoutManager =
             GridLayoutManager(context, CAST_ITEM_PER_COLUMN, RecyclerView.HORIZONTAL, false)
     }
 
@@ -139,16 +152,16 @@ class MovieDetailFragment : BaseFragment() {
             glide.load(imageUrl)
                 .placeholder(R.drawable.ic_place_holder)
                 .error(R.drawable.ic_error)
-                .into(ivMovieImage)
+                .into(movieImageView)
 
-            tvMovieName.text = movieDetail.title
-            tvMovieDescription.text = movieDetail.overview
+            movieNameTextView.text = movieDetail.title
+            movieDescriptionTextView.text = movieDetail.overview
 
             val productCountry = if (movieDetail.productionCountries.isNotEmpty()) {
                 movieDetail.productionCountries[0].iso_3166_1
             } else EMPTY_TEXT
 
-            tvMovieTimeInfo.text = formatter.formatMovieDurationToString(
+            movieTimeInfoTextView.text = formatMovieDurationToString(
                 movieDetail.runtime,
                 movieDetail.releaseDate,
                 productCountry
@@ -159,33 +172,48 @@ class MovieDetailFragment : BaseFragment() {
             } else {
                 EMPTY_TEXT
             }
-            tvLanguages.text = formatter.formatLanguageToString(language)
+            languagesTextView.text = language.formatLanguageToString()
 
-            tvGenres.text = formatter.formatGenresToString(movieDetail.genres)
-            tvRating.text = formatter.formatRatingToString(movieDetail.voteAverage)
+            genresTextView.text = formatGenresToString(movieDetail.genres)
+            ratingTextView.text = movieDetail.voteAverage.formatRatingToString()
 
-            rbRatingBar.numStars = movieDetail.voteAverage.toFloat().toInt() / 2 // change range vote from 10 to 5
-            rbRatingBar.rating = movieDetail.voteAverage.toFloat() / 2 // change range vote from 10 to 5
+            ratingBar.numStars = movieDetail.voteAverage.toFloat().toInt() / 2 // change range vote from 10 to 5
+            ratingBar.rating = movieDetail.voteAverage.toFloat() / 2 // change range vote from 10 to 5
         }
     }
 
     private fun handleCastLoading(isLoading: Boolean) {
         if (isLoading) {
-            prbCast.visibility = View.VISIBLE
-            layoutCast.visibility = View.INVISIBLE
+            castLoadingProgressBar.visibility = View.VISIBLE
+            castLayout.visibility = View.INVISIBLE
         } else {
-            prbCast.visibility = View.INVISIBLE
-            layoutCast.visibility = View.VISIBLE
+            castLoadingProgressBar.visibility = View.INVISIBLE
+            castLayout.visibility = View.VISIBLE
         }
     }
 
     private fun handleMovieInfoLoading(isLoading: Boolean) {
         if (isLoading) {
-            prbMovieInfo.visibility = View.VISIBLE
-            layoutMovieInfo.visibility = View.INVISIBLE
+            movieInfoLoadingProgressBar.visibility = View.VISIBLE
+            movieInfoLayout.visibility = View.INVISIBLE
         } else {
-            prbMovieInfo.visibility = View.INVISIBLE
-            layoutMovieInfo.visibility = View.VISIBLE
+            movieInfoLoadingProgressBar.visibility = View.INVISIBLE
+            movieInfoLayout.visibility = View.VISIBLE
+        }
+    }
+
+    private fun reloadData() {
+        val movieId = args.movieId
+        movieDetailViewModel.getMovieDetail(movieId)
+    }
+
+    private fun handleError(error: Boolean) {
+        if(error){
+            errorLayout.visibility = View.VISIBLE
+            contentScrollView.visibility = View.INVISIBLE
+        }else{
+            errorLayout.visibility = View.INVISIBLE
+            contentScrollView.visibility = View.VISIBLE
         }
     }
 

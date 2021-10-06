@@ -1,6 +1,5 @@
 package com.congtv5.smartmovie.ui.base.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 
 abstract class BaseViewModel<S : Any> : ViewModel() {
@@ -13,8 +12,4 @@ abstract class BaseViewModel<S : Any> : ViewModel() {
 
     abstract fun initState(): S
 
-    override fun onCleared() {
-        Log.d("test", "onCleared")
-        super.onCleared()
-    }
 }

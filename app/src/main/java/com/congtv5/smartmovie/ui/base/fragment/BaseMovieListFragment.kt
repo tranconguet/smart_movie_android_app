@@ -26,12 +26,12 @@ abstract class BaseMovieListFragment : BaseFragment() {
     lateinit var homeViewModel: HomeViewModel
     lateinit var movieListViewModel: BaseMovieListViewModel
 
-    private lateinit var rvMovieList: RecyclerView
-    private lateinit var prbLoadMore: ProgressBar
-    private lateinit var rlRefresh: SwipeRefreshLayout
-    private lateinit var prbLoading: ProgressBar
-    private lateinit var layoutError: LinearLayout
-    private lateinit var tvReload: TextView
+    private lateinit var movieListRecyclerView: RecyclerView
+    private lateinit var loadMoreProgressBar: ProgressBar
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private lateinit var loadingProgressBar: ProgressBar
+    private lateinit var errorLayout: LinearLayout
+    private lateinit var reloadTextView: TextView
 
     // calculate for load more
     private var isScrolling = false
@@ -49,12 +49,12 @@ abstract class BaseMovieListFragment : BaseFragment() {
     abstract fun goToMovieDetailPage(movieId: Int)
 
     override fun initBinding(view: View) {
-        rvMovieList = view.findViewById(R.id.rvMovieList)
-        prbLoadMore = view.findViewById(R.id.prbLoadMore)
-        rlRefresh = view.findViewById(R.id.rlRefresh)
-        prbLoading = view.findViewById(R.id.prbLoading)
-        layoutError = view.findViewById(R.id.layoutError)
-        tvReload = view.findViewById(R.id.tvReload)
+        movieListRecyclerView = view.findViewById(R.id.rvMovieList)
+        loadMoreProgressBar = view.findViewById(R.id.prbLoadMore)
+        swipeRefreshLayout = view.findViewById(R.id.rlRefresh)
+        loadingProgressBar = view.findViewById(R.id.prbLoading)
+        errorLayout = view.findViewById(R.id.layoutError)
+        reloadTextView = view.findViewById(R.id.tvReload)
     }
 
     override fun initObserveData() {
@@ -102,16 +102,16 @@ abstract class BaseMovieListFragment : BaseFragment() {
 
     private fun handleLoading(loading: Boolean) {
         if (loading) {
-            prbLoading.visibility = View.VISIBLE
-            layoutError.visibility = View.INVISIBLE
+            loadingProgressBar.visibility = View.VISIBLE
+            errorLayout.visibility = View.INVISIBLE
         } else if (!loading && movieListViewModel.currentState.isError) {
-            rlRefresh.isRefreshing = false
-            prbLoading.visibility = View.INVISIBLE
-            layoutError.visibility = View.VISIBLE
+            swipeRefreshLayout.isRefreshing = false
+            loadingProgressBar.visibility = View.INVISIBLE
+            errorLayout.visibility = View.VISIBLE
         } else {
-            rlRefresh.isRefreshing = false
-            prbLoading.visibility = View.INVISIBLE
-            layoutError.visibility = View.INVISIBLE
+            swipeRefreshLayout.isRefreshing = false
+            loadingProgressBar.visibility = View.INVISIBLE
+            errorLayout.visibility = View.INVISIBLE
         }
     }
 
@@ -132,16 +132,16 @@ abstract class BaseMovieListFragment : BaseFragment() {
 
     override fun initAction() {
         initScrollAction()
-        rlRefresh.setOnRefreshListener {
+        swipeRefreshLayout.setOnRefreshListener {
             reloadData()
         }
-        tvReload.setOnClickListener {
+        reloadTextView.setOnClickListener {
             reloadData()
         }
     }
 
     private fun initScrollAction() {
-        rvMovieList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        movieListRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
 
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
@@ -151,7 +151,7 @@ abstract class BaseMovieListFragment : BaseFragment() {
 
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                val currentLayoutManager = rvMovieList.layoutManager
+                val currentLayoutManager = movieListRecyclerView.layoutManager
                 scrollOutItemNumber = when (currentLayoutManager) {
                     is LinearLayoutManager -> (currentLayoutManager as? LinearLayoutManager?)?.findLastVisibleItemPosition()
                         ?: 0
@@ -184,16 +184,12 @@ abstract class BaseMovieListFragment : BaseFragment() {
                 goToMovieDetailPage(movieId)
             }, { favMovie ->
                 updateFavoriteMovie(favMovie)
-            }, { movieId ->
-                isMovieFavorite(movieId)
             })
         movieLinearListAdapter =
             MovieListAdapter(MovieItemDisplayType.VERTICAL_LINEAR, { movieId: Int ->
                 goToMovieDetailPage(movieId)
             }, { favMovie ->
                 updateFavoriteMovie(favMovie)
-            }, { movieId ->
-                isMovieFavorite(movieId)
             })
         gridLayoutManager = GridLayoutManager(context, GRID_ITEM_PER_ROW)
         linearLayoutManager = LinearLayoutManager(context)
@@ -206,21 +202,21 @@ abstract class BaseMovieListFragment : BaseFragment() {
 
     private fun handleLoadingMore(isLoadingMore: Boolean) {
         if (isLoadingMore) {
-            prbLoadMore.visibility = View.VISIBLE
+            loadMoreProgressBar.visibility = View.VISIBLE
         } else {
-            prbLoadMore.visibility = View.GONE
+            loadMoreProgressBar.visibility = View.GONE
         }
     }
 
     private fun updateDisplayType(type: MovieItemDisplayType) {
         when (type) {
             MovieItemDisplayType.GRID -> {
-                rvMovieList.adapter = movieGridListAdapter
-                rvMovieList.layoutManager = gridLayoutManager
+                movieListRecyclerView.adapter = movieGridListAdapter
+                movieListRecyclerView.layoutManager = gridLayoutManager
             }
             MovieItemDisplayType.VERTICAL_LINEAR -> {
-                rvMovieList.adapter = movieLinearListAdapter
-                rvMovieList.layoutManager = linearLayoutManager
+                movieListRecyclerView.adapter = movieLinearListAdapter
+                movieListRecyclerView.layoutManager = linearLayoutManager
             }
         }
     }
@@ -234,10 +230,6 @@ abstract class BaseMovieListFragment : BaseFragment() {
 
     private fun updateFavoriteMovie(favoriteMovie: FavoriteMovie) {
         homeViewModel.updateFavoriteMovie(favoriteMovie)
-    }
-
-    private fun isMovieFavorite(movieId: Int): Boolean {
-        return homeViewModel.isMovieFavorite(movieId)
     }
 
 }

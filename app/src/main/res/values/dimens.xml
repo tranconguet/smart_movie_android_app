@@ -1,28 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="toolbar_height">60dp</dimen>
+    <dimen name="space_4dp">4dp</dimen>
+    <dimen name="space_8dp">8dp</dimen>
+    <dimen name="space_16dp">16dp</dimen>
+    <dimen name="space_24dp">24dp</dimen>
     <dimen name="icon_size">40dp</dimen>
     <dimen name="icon_display_margin_end">12dp</dimen>
+    <dimen name="icon_next_size">16dp</dimen>
+    <dimen name="icon_back_size">24dp</dimen>
+    <dimen name="star_icon_size">40dp</dimen>
+    <dimen name="star_icon_margin">8dp</dimen>
+    <dimen name="toolbar_height">60dp</dimen>
     <dimen name="screen_title_text_size">24sp</dimen>
+    <dimen name="common_text_size">20sp</dimen>
+    <!---->
     <dimen name="grid_display_movie_item_width">168dp</dimen>
     <dimen name="grid_display_movie_item_height">280dp</dimen>
     <dimen name="grid_display_movie_item_image_height">200dp</dimen>
     <dimen name="grid_display_movie_item_movie_name_text_size">20sp</dimen>
     <dimen name="grid_display_movie_item_movie_info_text_size">16sp</dimen>
-    <dimen name="space_8dp">8dp</dimen>
-    <dimen name="star_icon_size">40dp</dimen>
-    <dimen name="star_icon_margin">8dp</dimen>
+    <dimen name="grid_display_movie_item_margin">16dp</dimen>
+    <!---->
     <dimen name="linear_display_movie_item_margin">8dp</dimen>
     <dimen name="linear_display_movie_item_height">180dp</dimen>
-    <dimen name="grid_display_movie_item_margin">16dp</dimen>
+    <dimen name="linear_display_movie_item_title_width">200dp</dimen>
+    <dimen name="linear_display_movie_item_max_lines">5</dimen>
+    <!---->
     <dimen name="error_notification_title_text_size">24sp</dimen>
     <dimen name="error_notification_text_size">20sp</dimen>
-    <dimen name="space_24dp">24dp</dimen>
     <dimen name="error_message_width">340dp</dimen>
-    <dimen name="common_text_size">20sp</dimen>
-    <dimen name="icon_next_size">16dp</dimen>
-    <dimen name="space_4dp">4dp</dimen>
-    <dimen name="icon_back_size">24dp</dimen>
+    <!---->
     <dimen name="movie_detail_margin">16dp</dimen>
     <dimen name="movie_detail_image_width">140dp</dimen>
     <dimen name="movie_detail_image_height">160dp</dimen>
@@ -34,35 +41,36 @@
     <dimen name="movie_detail_star_icon_padding">4dp</dimen>
     <dimen name="movie_detail_overview_margin_horizontal">24dp</dimen>
     <dimen name="movie_detail_overview_margin_top">16dp</dimen>
+    <dimen name="movie_detail_cast_title_margin_bottom">8dp</dimen>
+    <!---->
     <dimen name="genre_item_height">192dp</dimen>
     <dimen name="genre_title_text_size">28sp</dimen>
     <dimen name="genre_title_height">56dp</dimen>
     <dimen name="genre_title_padding_start">24dp</dimen>
     <dimen name="genre_item_margin_margin">20dp</dimen>
+    <dimen name="genre_item_margin_margin_horizontal">20dp</dimen>
+    <dimen name="genre_item_margin_margin_vertical">12dp</dimen>
+    <!---->
     <dimen name="search_bar_height">48dp</dimen>
     <dimen name="search_bar_width">280dp</dimen>
-    <dimen name="space_16dp">16dp</dimen>
     <dimen name="search_bar_radius">12dp</dimen>
-    <dimen name="search_section_height">60dp</dimen>
     <dimen name="search_bar_padding_start">16dp</dimen>
-    <dimen name="navigation_tab_layout_height">52dp</dimen>
-    <dimen name="main_navigation_text_size">12sp</dimen>
-    <dimen name="movie_detail_cast_title_height">32dp</dimen>
-    <dimen name="cast_item_width">100dp</dimen>
-    <dimen name="cast_item_height">128dp</dimen>
-    <dimen name="cast_item_margin">12dp</dimen>
-    <dimen name="cast_image_height">92dp</dimen>
-    <dimen name="movie_detail_cast_title_margin_bottom">8dp</dimen>
-    <dimen name="cast_item_margin_horizontal">20dp</dimen>
-    <dimen name="cast_item_margin_vertical">16dp</dimen>
-    <dimen name="cast_item_name_text_size">12sp</dimen>
+    <dimen name="search_section_height">60dp</dimen>
     <dimen name="search_item_title_padding">12dp</dimen>
     <dimen name="search_item_title_text_size">24sp</dimen>
     <dimen name="search_item_title_height">64dp</dimen>
     <dimen name="search_item_title_text_width">200dp</dimen>
     <dimen name="search_item_genres_text_size">20sp</dimen>
-    <dimen name="genre_item_margin_margin_horizontal">20dp</dimen>
-    <dimen name="genre_item_margin_margin_vertical">12dp</dimen>
-    <dimen name="linear_display_movie_item_title_width">200dp</dimen>
-    <dimen name="linear_display_movie_item_max_lines">5</dimen>
+    <dimen name="navigation_tab_layout_height">52dp</dimen>
+    <dimen name="main_navigation_text_size">12sp</dimen>
+    <dimen name="movie_detail_cast_title_height">32dp</dimen>
+    <!---->
+    <dimen name="cast_item_width">100dp</dimen>
+    <dimen name="cast_item_height">128dp</dimen>
+    <dimen name="cast_item_margin">12dp</dimen>
+    <dimen name="cast_image_height">92dp</dimen>
+    <dimen name="cast_item_margin_horizontal">20dp</dimen>
+    <dimen name="cast_item_margin_vertical">16dp</dimen>
+    <dimen name="cast_item_name_text_size">12sp</dimen>
+    <!---->
 </resources>

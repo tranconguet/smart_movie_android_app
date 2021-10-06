@@ -3,7 +3,7 @@ package com.congtv5.smartmovie.di.screen
 import com.congtv5.smartmovie.di.scope.PerFragment
 import com.congtv5.smartmovie.ui.view.fragments.artist.ArtistFragment
 import com.congtv5.smartmovie.ui.view.fragments.genre.GenreFragment
-import com.congtv5.smartmovie.ui.view.fragments.genre.MovieByGenreFragment
+import com.congtv5.smartmovie.ui.view.fragments.moviebygenre.MovieByGenreFragment
 import com.congtv5.smartmovie.ui.view.fragments.home.*
 import com.congtv5.smartmovie.ui.view.fragments.moviedetail.MovieDetailFragment
 import com.congtv5.smartmovie.ui.view.fragments.search.SearchFragment

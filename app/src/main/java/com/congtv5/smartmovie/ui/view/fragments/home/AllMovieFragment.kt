@@ -37,8 +37,8 @@ class AllMovieFragment : BaseFragment() {
     private var movieGridListAdapter: MovieSectionListAdapter? = null
     private var movieLinearListAdapter: MovieSectionListAdapter? = null
 
-    private lateinit var rvMovieList: RecyclerView
-    private lateinit var rlRefresh: SwipeRefreshLayout
+    private lateinit var movieListRecyclerView: RecyclerView
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     override fun getLayoutID(): Int {
         return R.layout.fragment_all_movie
@@ -49,8 +49,8 @@ class AllMovieFragment : BaseFragment() {
     }
 
     override fun initBinding(view: View) {
-        rvMovieList = view.findViewById(R.id.rvMovieList)
-        rlRefresh = view.findViewById(R.id.rlRefresh)
+        movieListRecyclerView = view.findViewById(R.id.rvMovieList)
+        swipeRefreshLayout = view.findViewById(R.id.rlRefresh)
     }
 
     override fun initObserveData() {
@@ -89,13 +89,13 @@ class AllMovieFragment : BaseFragment() {
     }
 
     override fun initAction() {
-        rlRefresh.setOnRefreshListener {
+        swipeRefreshLayout.setOnRefreshListener {
             reloadData()
         }
     }
 
     private fun initSectionAdapter() {
-        rvMovieList.layoutManager = LinearLayoutManager(context)
+        movieListRecyclerView.layoutManager = LinearLayoutManager(context)
         movieGridListAdapter =
             MovieSectionListAdapter(MovieItemDisplayType.GRID, { movieId ->
                 goToMovieDetailPage(movieId)
@@ -103,8 +103,6 @@ class AllMovieFragment : BaseFragment() {
                 goToOtherCategory(movieCategory)
             }, { favMovie ->
                 updateFavoriteMovie(favMovie)
-            }, { movieId ->
-                isMovieFavorite(movieId)
             })
         movieLinearListAdapter =
             MovieSectionListAdapter(MovieItemDisplayType.VERTICAL_LINEAR, { movieId ->
@@ -113,8 +111,6 @@ class AllMovieFragment : BaseFragment() {
                 goToOtherCategory(movieCategory)
             }, { favMovie ->
                 updateFavoriteMovie(favMovie)
-            }, { movieId ->
-                isMovieFavorite(movieId)
             })
     }
 
@@ -142,20 +138,16 @@ class AllMovieFragment : BaseFragment() {
     private fun updateDisplayType(type: MovieItemDisplayType) {
         when (type) {
             MovieItemDisplayType.GRID -> {
-                rvMovieList.adapter = movieGridListAdapter
+                movieListRecyclerView.adapter = movieGridListAdapter
             }
             MovieItemDisplayType.VERTICAL_LINEAR -> {
-                rvMovieList.adapter = movieLinearListAdapter
+                movieListRecyclerView.adapter = movieLinearListAdapter
             }
         }
     }
 
     private fun updateFavoriteMovie(favoriteMovie: FavoriteMovie) {
         homeViewModel.updateFavoriteMovie(favoriteMovie)
-    }
-
-    private fun isMovieFavorite(movieId: Int): Boolean {
-        return homeViewModel.isMovieFavorite(movieId)
     }
 
     private fun reloadData() {

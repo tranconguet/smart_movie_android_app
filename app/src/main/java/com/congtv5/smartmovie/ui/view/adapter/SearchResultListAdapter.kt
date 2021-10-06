@@ -15,12 +15,12 @@ import com.congtv5.domain.model.Genre
 import com.congtv5.domain.model.Movie
 import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.view.adapter.diffutil.MovieDiffUtil
-import com.congtv5.smartmovie.utils.Constants
 import com.congtv5.smartmovie.utils.Constants.IMAGE_BASE_URL
+import com.congtv5.smartmovie.utils.formatGenresToString
 
 class SearchResultListAdapter(
-    private var onMovieClick: (Int) -> Unit,
-    private var getGenreNameById: (Int) -> String?
+    private val onMovieClick: (Int) -> Unit,
+    private val getGenreNameById: (Int) -> String?
 ) : ListAdapter<Movie, SearchResultListAdapter.SearchResultViewHolder>(MovieDiffUtil()) {
 
     class SearchResultViewHolder(
@@ -30,15 +30,14 @@ class SearchResultListAdapter(
     ) : RecyclerView.ViewHolder(view) {
 
         private var movie: Movie? = null
-        private val layoutSearchResultItem =
-            view.findViewById<ConstraintLayout>(R.id.searchResultItemLayout)
-        private val tvMovieName = view.findViewById<TextView>(R.id.tvGenreItemTitle)
-        private val ivMovieImage = view.findViewById<ImageView>(R.id.ivGenreItemImage)
-        private val rbRatingBar = view.findViewById<RatingBar>(R.id.rbRatingBar)
-        private val tvGenres = view.findViewById<TextView>(R.id.tvGenres)
+        private val searchResultsLayout = view.findViewById<ConstraintLayout>(R.id.searchResultItemLayout)
+        private val movieNameTextView = view.findViewById<TextView>(R.id.tvGenreItemTitle)
+        private val movieImageView = view.findViewById<ImageView>(R.id.ivGenreItemImage)
+        private val ratingBar = view.findViewById<RatingBar>(R.id.rbRatingBar)
+        private val genresTextView = view.findViewById<TextView>(R.id.tvGenres)
 
         init {
-            layoutSearchResultItem.setOnClickListener {
+            searchResultsLayout.setOnClickListener {
                 if (movie != null) {
                     onMovieClick.invoke(movie!!.id)
                 } else {
@@ -50,7 +49,7 @@ class SearchResultListAdapter(
 
         fun bind(movie: Movie) {
             this.movie = movie
-            tvMovieName.text = movie.title
+            movieNameTextView.text = movie.title
 //            tvGenres.text = formatGenresToString(movie.genre_ids)
 
             val genres = movie.genreIds.filter { id ->
@@ -59,27 +58,17 @@ class SearchResultListAdapter(
                 Genre(id, getGenreNameById(id)!!, null)
             }
 
-            tvGenres.text = formatGenresToString(genres)
+            genresTextView.text = formatGenresToString(genres)
 
             val rating = movie.voteAverage.toFloat() / 2
-            rbRatingBar.rating = rating
+            ratingBar.rating = rating
 
             val imageUrl = IMAGE_BASE_URL + movie.backdropPath
-            Glide.with(ivMovieImage)
+            Glide.with(movieImageView)
                 .load(imageUrl)
                 .placeholder(R.drawable.ic_place_holder)
                 .error(R.drawable.ic_error)
-                .into(ivMovieImage)
-        }
-
-        private fun formatGenresToString(genres: List<Genre>): String {
-            return if (genres.isNotEmpty()) {
-                genres.joinToString("") { genre ->
-                    "${genre.name} | "
-                }.dropLast(2)
-            } else {
-                Constants.EMPTY_TEXT
-            }
+                .into(movieImageView)
         }
     }
 

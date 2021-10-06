@@ -1,8 +1,7 @@
-package com.congtv5.smartmovie.ui.view.fragments.genre
+package com.congtv5.smartmovie.ui.view.fragments.moviebygenre
 
 import android.view.View
 import android.widget.ImageView
-import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -11,8 +10,8 @@ import com.congtv5.domain.model.MovieListPage
 import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.base.fragment.BaseMovieListFragment
 import com.congtv5.smartmovie.ui.base.viewmodel.ViewModelFactory
-import com.congtv5.smartmovie.ui.viewmodel.genre.MovieByGenreViewModel
 import com.congtv5.smartmovie.ui.viewmodel.home.HomeViewModel
+import com.congtv5.smartmovie.ui.viewmodel.moviebygenre.MovieByGenreViewModel
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
 import javax.inject.Inject
 
@@ -28,10 +27,9 @@ class MovieByGenreFragment : BaseMovieListFragment() {
     lateinit var movieByGenreViewModel: MovieByGenreViewModel
 
     private val args: MovieByGenreFragmentArgs by navArgs()
-    private lateinit var tvPageTitle: TextView
-    private lateinit var ivBackButton: ImageView
-    private lateinit var ivDisplayType: ImageView
-    private lateinit var prbLoading: ProgressBar
+    private lateinit var pageTitleTextView: TextView
+    private lateinit var backButtonImageView: ImageView
+    private lateinit var displayTypeImageView: ImageView
 
     override fun getLayoutID(): Int {
         return R.layout.fragment_movie_by_genre
@@ -39,10 +37,9 @@ class MovieByGenreFragment : BaseMovieListFragment() {
 
     override fun initBinding(view: View) {
         super.initBinding(view)
-        tvPageTitle = view.findViewById(R.id.tvPageTitle)
-        ivBackButton = view.findViewById(R.id.ivBackButton)
-        ivDisplayType = view.findViewById(R.id.ivDisplayType)
-        prbLoading = view.findViewById(R.id.prbLoading)
+        pageTitleTextView = view.findViewById(R.id.tvPageTitle)
+        backButtonImageView = view.findViewById(R.id.ivBackButton)
+        displayTypeImageView = view.findViewById(R.id.ivDisplayType)
     }
 
     override fun initInjection() {
@@ -63,10 +60,10 @@ class MovieByGenreFragment : BaseMovieListFragment() {
             observer = { type ->
                 when (type!!) {
                     MovieItemDisplayType.GRID -> {
-                        ivDisplayType.setImageResource(R.drawable.linear_display)
+                        displayTypeImageView.setImageResource(R.drawable.linear_display)
                     }
                     MovieItemDisplayType.VERTICAL_LINEAR -> {
-                        ivDisplayType.setImageResource(R.drawable.grid_display)
+                        displayTypeImageView.setImageResource(R.drawable.grid_display)
                     }
                 }
             }
@@ -76,15 +73,15 @@ class MovieByGenreFragment : BaseMovieListFragment() {
 
     override fun initView() {
         super.initView()
-        tvPageTitle.text = args.genreTitle
+        pageTitleTextView.text = args.genreTitle
     }
 
     override fun initAction() {
         super.initAction()
-        ivBackButton.setOnClickListener {
+        backButtonImageView.setOnClickListener {
             findNavController().popBackStack()
         }
-        ivDisplayType.setOnClickListener {
+        displayTypeImageView.setOnClickListener {
             toggleDisplayType()
         }
     }

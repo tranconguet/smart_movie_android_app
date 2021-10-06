@@ -14,33 +14,31 @@ import com.congtv5.domain.model.FavoriteMovie
 import com.congtv5.domain.model.Movie
 import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.view.adapter.diffutil.MovieDiffUtil
-import com.congtv5.smartmovie.utils.Constants.EMPTY_TEXT
 import com.congtv5.smartmovie.utils.Constants.IMAGE_BASE_URL
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
+import com.congtv5.smartmovie.utils.formatTime
 
 class MovieListAdapter(
     private val displayType: MovieItemDisplayType,
-    private var onMovieClick: (Int) -> Unit,
-    private var onStarClick: (FavoriteMovie) -> Unit,
-    private var isMovieFavorite: (Int) -> Boolean
+    private val onMovieClick: (Int) -> Unit,
+    private val onStarClick: (FavoriteMovie) -> Unit
 ) : ListAdapter<Movie, RecyclerView.ViewHolder>(MovieDiffUtil()) {
 
     class MovieGridItemViewHolder(
         view: View,
         private var onMovieClick: (Int) -> Unit,
-        private var onStarClick: (FavoriteMovie) -> Unit,
-        private var isMovieFavorite: (Int) -> Boolean
+        private var onStarClick: (FavoriteMovie) -> Unit
     ) : RecyclerView.ViewHolder(view) {
 
         private var movie: Movie? = null
-        private val layoutMovie = view.findViewById<ConstraintLayout>(R.id.layoutMovie)
-        private val tvMovieName = view.findViewById<TextView>(R.id.tvMovieName)
-        private val ivMovieImage = view.findViewById<ImageView>(R.id.ivMovieImage)
-        private val ivStar = view.findViewById<ImageView>(R.id.ivStar)
-        private val tvMovieRunTime = view.findViewById<TextView>(R.id.tvMovieRunTime)
+        private val movieItemLayout = view.findViewById<ConstraintLayout>(R.id.layoutMovie)
+        private val movieNameTextView = view.findViewById<TextView>(R.id.tvMovieName)
+        private val movieImageView = view.findViewById<ImageView>(R.id.ivMovieImage)
+        private val starImageView = view.findViewById<ImageView>(R.id.ivStar)
+        private val movieRunTimeTextView = view.findViewById<TextView>(R.id.tvMovieRunTime)
 
         init {
-            layoutMovie.setOnClickListener {
+            movieItemLayout.setOnClickListener {
                 if (movie != null) {
                     onMovieClick.invoke(movie!!.id)
                 } else {
@@ -49,15 +47,14 @@ class MovieListAdapter(
                 }
             }
 
-            ivStar.setOnClickListener {
+            starImageView.setOnClickListener {
                 if (movie != null) {
-                    val isFav = isMovieFavorite.invoke(movie!!.id) // check if movie favorite
-                    if (!isFav) { // set icon
-                        ivStar.setImageResource(R.drawable.star_active)
+                    if (!movie!!.isFavoriteMovie) { // set icon
+                        starImageView.setImageResource(R.drawable.star_active)
                     } else {
-                        ivStar.setImageResource(R.drawable.star_default)
+                        starImageView.setImageResource(R.drawable.star_default)
                     }
-                    val favMovie = FavoriteMovie(movie!!.id, !isFav)
+                    val favMovie = FavoriteMovie(movie!!.id, !movie!!.isFavoriteMovie)
                     onStarClick.invoke(favMovie)
                 } else {
                     //handle null case
@@ -69,51 +66,40 @@ class MovieListAdapter(
         fun bind(movie: Movie) {
             this.movie = movie
 
-            tvMovieName.text = movie.title
-            tvMovieRunTime.text = formatTimeToString(movie.runtime)
+            movieNameTextView.text = movie.title
+            movieRunTimeTextView.text = movie.runtime.formatTime()
 
-            val isFav = isMovieFavorite.invoke(movie.id)
-            if (isFav) {
-                ivStar.setImageResource(R.drawable.star_active)
+            if (movie.isFavoriteMovie) {
+                starImageView.setImageResource(R.drawable.star_active)
             } else {
-                ivStar.setImageResource(R.drawable.star_default)
+                starImageView.setImageResource(R.drawable.star_default)
             }
 
             val imageUrl = IMAGE_BASE_URL + movie.posterPath
-            Glide.with(ivMovieImage)
+            Glide.with(movieImageView)
                 .load(imageUrl)
                 .placeholder(R.drawable.ic_place_holder)
                 .error(R.drawable.ic_error)
-                .into(ivMovieImage)
+                .into(movieImageView)
         }
 
-        private fun formatTimeToString(runtime: Int): String {
-            val hours = runtime / 60
-            val minutes = runtime - hours * 60
-            return when {
-                hours > 0 -> "${hours}h ${minutes}m"
-                hours == 0 -> "${minutes}m"
-                else -> EMPTY_TEXT // api result fail
-            }
-        }
     }
 
     class MovieLinearItemViewHolder(
         view: View,
         private var onMovieClick: (Int) -> Unit,
-        private var onStarClick: (FavoriteMovie) -> Unit,
-        private var isMovieFavorite: (Int) -> Boolean
+        private var onStarClick: (FavoriteMovie) -> Unit
     ) : RecyclerView.ViewHolder(view) {
 
         private var movie: Movie? = null
-        private val layoutMovie = view.findViewById<ConstraintLayout>(R.id.layoutMovie)
-        private val tvMovieName = view.findViewById<TextView>(R.id.tvMovieName)
-        private val tvMovieDescription = view.findViewById<TextView>(R.id.tvMovieDescription)
-        private val ivMovieImage = view.findViewById<ImageView>(R.id.ivMovieImage)
-        private val ivStar = view.findViewById<ImageView>(R.id.ivStar)
+        private val movieLayout = view.findViewById<ConstraintLayout>(R.id.layoutMovie)
+        private val movieNameTextView = view.findViewById<TextView>(R.id.tvMovieName)
+        private val movieDescriptionTextView = view.findViewById<TextView>(R.id.tvMovieDescription)
+        private val movieImageView = view.findViewById<ImageView>(R.id.ivMovieImage)
+        private val starImageView = view.findViewById<ImageView>(R.id.ivStar)
 
         init {
-            layoutMovie.setOnClickListener {
+            movieLayout.setOnClickListener {
                 if (movie != null) {
                     onMovieClick.invoke(movie!!.id)
                 } else {
@@ -122,20 +108,18 @@ class MovieListAdapter(
                 }
             }
 
-            ivStar.setOnClickListener {
+            starImageView.setOnClickListener {
                 if (movie != null) {
-                    val isFav = isMovieFavorite.invoke(movie!!.id) // check if movie favorite
-                    //set icon
-                    if (!isFav) {
-                        ivStar.setImageResource(R.drawable.star_active)
+                    if (!movie!!.isFavoriteMovie) { // set icon
+                        starImageView.setImageResource(R.drawable.star_active)
                     } else {
-                        ivStar.setImageResource(R.drawable.star_default)
+                        starImageView.setImageResource(R.drawable.star_default)
                     }
-                    val favMovie = FavoriteMovie(movie!!.id, !isFav)
+                    val favMovie = FavoriteMovie(movie!!.id, !movie!!.isFavoriteMovie)
                     onStarClick.invoke(favMovie)
                 } else {
                     //handle null case
-                    Log.d("CongTV5", "MovieGridItemViewHolder #init() movie is null")
+                    Log.d("CongTV5", "MovieLinearItemViewHolder #init() movie is null")
                 }
             }
         }
@@ -143,22 +127,21 @@ class MovieListAdapter(
         fun bind(movie: Movie) {
             this.movie = movie
 
-            val isFav = isMovieFavorite.invoke(movie.id)
-            if (isFav) {
-                ivStar.setImageResource(R.drawable.star_active)
+            if (movie.isFavoriteMovie) {
+                starImageView.setImageResource(R.drawable.star_active)
             } else {
-                ivStar.setImageResource(R.drawable.star_default)
+                starImageView.setImageResource(R.drawable.star_default)
             }
 
-            tvMovieName.text = movie.title
-            tvMovieDescription.text = movie.overview
+            movieNameTextView.text = movie.title
+            movieDescriptionTextView.text = movie.overview
 
             val imageUrl = IMAGE_BASE_URL + movie.posterPath
-            Glide.with(ivMovieImage)
+            Glide.with(movieImageView)
                 .load(imageUrl)
                 .placeholder(R.drawable.ic_place_holder)
                 .error(R.drawable.ic_error)
-                .into(ivMovieImage)
+                .into(movieImageView)
         }
     }
 
@@ -167,12 +150,12 @@ class MovieListAdapter(
             MovieItemDisplayType.GRID -> {
                 val view = LayoutInflater.from(parent.context)
                     .inflate(R.layout.grid_display_movie_item_layout, parent, false)
-                MovieGridItemViewHolder(view, onMovieClick, onStarClick, isMovieFavorite)
+                MovieGridItemViewHolder(view, onMovieClick, onStarClick)
             }
             MovieItemDisplayType.VERTICAL_LINEAR -> {
                 val view = LayoutInflater.from(parent.context)
                     .inflate(R.layout.linear_display_movie_item_layout, parent, false)
-                MovieLinearItemViewHolder(view, onMovieClick, onStarClick, isMovieFavorite)
+                MovieLinearItemViewHolder(view, onMovieClick, onStarClick)
             }
         }
     }

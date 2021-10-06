@@ -11,7 +11,7 @@ import com.bumptech.glide.Glide
 import com.congtv5.domain.model.Cast
 import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.view.adapter.diffutil.CastDiffUtil
-import com.congtv5.smartmovie.utils.Constants
+import com.congtv5.smartmovie.utils.Constants.IMAGE_BASE_URL
 
 class CastListAdapter :
     ListAdapter<Cast, CastListAdapter.CastViewHolder>(CastDiffUtil()) {
@@ -19,18 +19,18 @@ class CastListAdapter :
     class CastViewHolder(view: View) :
         RecyclerView.ViewHolder(view) {
 
-        private val tvCastName = view.findViewById<TextView>(R.id.tvCastName)
-        private val ivCastImage = view.findViewById<ImageView>(R.id.ivCastImage)
+        private val castNameTextView = view.findViewById<TextView>(R.id.tvCastName)
+        private val castImageView = view.findViewById<ImageView>(R.id.ivCastImage)
 
         fun bind(cast: Cast) {
-            tvCastName.text = cast.name
+            castNameTextView.text = cast.name
 
-            val imageUrl = Constants.IMAGE_BASE_URL + cast.profilePath
-            Glide.with(ivCastImage)
+            val imageUrl = IMAGE_BASE_URL + cast.profilePath
+            Glide.with(castImageView)
                 .load(imageUrl)
                 .placeholder(R.drawable.ic_place_holder)
                 .error(R.drawable.ic_error)
-                .into(ivCastImage)
+                .into(castImageView)
         }
     }
 

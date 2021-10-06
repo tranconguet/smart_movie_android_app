@@ -9,7 +9,6 @@ class SmartMovieApplication : Application() {
 
     lateinit var component: ApplicationComponent
 
-
     override fun onCreate() {
         super.onCreate()
 

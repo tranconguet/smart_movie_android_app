@@ -38,11 +38,11 @@ class HomeFragment : BaseFragment() {
 
     private lateinit var tabLayout: TabLayout
     private lateinit var viewPager: ViewPager2
-    private lateinit var ivDisplayType: ImageView
-    private lateinit var tvReload: TextView
-    private lateinit var layoutHome: LinearLayout
-    private lateinit var errorNotification: LinearLayout
-    private lateinit var prbMain: ProgressBar
+    private lateinit var displayTypeImageView: ImageView
+    private lateinit var reloadTextView: TextView
+    private lateinit var homeLayout: LinearLayout
+    private lateinit var errorLayout: LinearLayout
+    private lateinit var loadingProgressBar: ProgressBar
 
     override fun getLayoutID(): Int {
         return R.layout.fragment_home
@@ -55,11 +55,11 @@ class HomeFragment : BaseFragment() {
     override fun initBinding(view: View) {
         tabLayout = view.findViewById(R.id.tlHome)
         viewPager = view.findViewById(R.id.vpHome)
-        ivDisplayType = view.findViewById(R.id.ivDisplayType)
-        tvReload = view.findViewById(R.id.tvReload)
-        layoutHome = view.findViewById(R.id.layoutHome)
-        errorNotification = view.findViewById(R.id.layoutError)
-        prbMain = view.findViewById(R.id.prbMain)
+        displayTypeImageView = view.findViewById(R.id.ivDisplayType)
+        reloadTextView = view.findViewById(R.id.tvReload)
+        homeLayout = view.findViewById(R.id.layoutHome)
+        errorLayout = view.findViewById(R.id.layoutError)
+        loadingProgressBar = view.findViewById(R.id.prbMain)
     }
 
     override fun initObserveData() {
@@ -86,10 +86,10 @@ class HomeFragment : BaseFragment() {
             observer = { type ->
                 when (type!!) {
                     MovieItemDisplayType.GRID -> {
-                        ivDisplayType.setImageResource(R.drawable.linear_display)
+                        displayTypeImageView.setImageResource(R.drawable.linear_display)
                     }
                     MovieItemDisplayType.VERTICAL_LINEAR -> {
-                        ivDisplayType.setImageResource(R.drawable.grid_display)
+                        displayTypeImageView.setImageResource(R.drawable.grid_display)
                     }
                 }
             }
@@ -121,10 +121,10 @@ class HomeFragment : BaseFragment() {
     }
 
     override fun initAction() {
-        tvReload.setOnClickListener {
+        reloadTextView.setOnClickListener {
             reloadInitData()
         }
-        ivDisplayType.setOnClickListener {
+        displayTypeImageView.setOnClickListener {
             toggleDisplayType()
         }
     }
@@ -161,17 +161,17 @@ class HomeFragment : BaseFragment() {
 
     private fun setUpProgressBar(isLoading: Boolean) {
         if (isLoading) {
-            prbMain.visibility = View.VISIBLE
-            errorNotification.visibility = View.INVISIBLE
-            layoutHome.visibility = View.INVISIBLE
+            loadingProgressBar.visibility = View.VISIBLE
+            errorLayout.visibility = View.INVISIBLE
+            homeLayout.visibility = View.INVISIBLE
         } else if (!isLoading && homeViewModel.currentState.isError) {
-            errorNotification.visibility = View.VISIBLE
-            prbMain.visibility = View.INVISIBLE
-            layoutHome.visibility = View.INVISIBLE
+            errorLayout.visibility = View.VISIBLE
+            loadingProgressBar.visibility = View.INVISIBLE
+            homeLayout.visibility = View.INVISIBLE
         } else {
-            prbMain.visibility = View.INVISIBLE
-            errorNotification.visibility = View.INVISIBLE
-            layoutHome.visibility = View.VISIBLE
+            loadingProgressBar.visibility = View.INVISIBLE
+            errorLayout.visibility = View.INVISIBLE
+            homeLayout.visibility = View.VISIBLE
         }
     }
 

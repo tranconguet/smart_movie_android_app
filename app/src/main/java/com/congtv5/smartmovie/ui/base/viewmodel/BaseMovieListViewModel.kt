@@ -20,6 +20,7 @@ abstract class BaseMovieListViewModel : BaseViewModel<MovieListViewState>() {
     override fun initState(): MovieListViewState {
         return MovieListViewState(
             movieListPages = mutableListOf(),
+            favList = listOf(),
             currentPage = 0,
             isLoading = false,
             isError = false,
@@ -28,14 +29,14 @@ abstract class BaseMovieListViewModel : BaseViewModel<MovieListViewState>() {
     }
 
     // apply favorite list from db to movie list from network
-    fun applyFavoriteToAllMovie(favList: List<FavoriteMovie>) {
+    fun applyFavoriteToAllMovie(newFavList: List<FavoriteMovie> = currentState.favList) {
         currentState.movieListPages.forEach { movieListPage ->
             movieListPage.results.forEach { movie ->
-                val favMovieReference = favList.find { favMovie -> favMovie.movieId == movie.id }
+                val favMovieReference = newFavList.find { favMovie -> favMovie.movieId == movie.id }
                 movie.isFavoriteMovie = favMovieReference != null && favMovieReference.isLiked
             }
         }
-        store.dispatchState(newState = currentState.copy(movieListPages = currentState.movieListPages))
+        store.dispatchState(newState = currentState.copy(movieListPages = currentState.movieListPages, favList = newFavList))
     }
 
     fun addMovieListPage(movieListPage: MovieListPage) {
@@ -51,8 +52,8 @@ abstract class BaseMovieListViewModel : BaseViewModel<MovieListViewState>() {
             when (val moviesResource = getMovieListPage(currentState.currentPage + 1)) {
                 is Resource.Success -> {
                     moviesResource.data?.let { newList ->
-                        newList.results.map { movie ->
-                            launch { // get each movie detail in parallel to get movie runtime
+                       newList.results.map { movie -> // get each movie detail in parallel to get movie runtime
+                            launch {
                                 val movieDetail = getMovieDetail(movie.id)
                                 movie.runtime = movieDetail.data?.runtime ?: 0
                             }
@@ -67,6 +68,7 @@ abstract class BaseMovieListViewModel : BaseViewModel<MovieListViewState>() {
                     setLoadingState(false)
                 }
             }
+            applyFavoriteToAllMovie(currentState.favList)
         }
     }
 

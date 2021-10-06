@@ -15,18 +15,18 @@ import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.base.fragment.BaseFragment
 import com.congtv5.smartmovie.ui.view.adapter.SearchResultListAdapter
 import com.congtv5.smartmovie.ui.view.fragments.home.HomeFragment
-import com.congtv5.smartmovie.ui.viewmodel.SearchViewModel
+import com.congtv5.smartmovie.ui.viewmodel.search.SearchViewModel
 import javax.inject.Inject
 
 class SearchFragment : BaseFragment() {
 
-    private lateinit var edtSearch: EditText
-    private lateinit var tvCancel: TextView
-    private lateinit var rvSearchResultList: RecyclerView
-    private lateinit var prbLoadMore: ProgressBar
-    private lateinit var prbSearch: ProgressBar
-    private lateinit var layoutError: LinearLayout
-    private lateinit var tvReload: TextView
+    private lateinit var searchEditText: EditText
+    private lateinit var cancelTextView: TextView
+    private lateinit var resultListRecyclerView: RecyclerView
+    private lateinit var loadMoreProgressBar: ProgressBar
+    private lateinit var searchingProgressBar: ProgressBar
+    private lateinit var errorLayout: LinearLayout
+    private lateinit var reloadTextView: TextView
 
     private var isScrolling = false // for load more
     private var totalItemNumber = 0
@@ -45,13 +45,13 @@ class SearchFragment : BaseFragment() {
     }
 
     override fun initBinding(view: View) {
-        edtSearch = view.findViewById(R.id.edtSearch)
-        tvCancel = view.findViewById(R.id.tvCancel)
-        rvSearchResultList = view.findViewById(R.id.rvSearchResultList)
-        prbLoadMore = view.findViewById(R.id.prbLoadMore)
-        prbSearch = view.findViewById(R.id.prbLoading)
-        layoutError = view.findViewById(R.id.layoutError)
-        tvReload = view.findViewById(R.id.tvReload)
+        searchEditText = view.findViewById(R.id.edtSearch)
+        cancelTextView = view.findViewById(R.id.tvCancel)
+        resultListRecyclerView = view.findViewById(R.id.rvSearchResultList)
+        loadMoreProgressBar = view.findViewById(R.id.prbLoadMore)
+        searchingProgressBar = view.findViewById(R.id.prbLoading)
+        errorLayout = view.findViewById(R.id.layoutError)
+        reloadTextView = view.findViewById(R.id.tvReload)
     }
 
     override fun initObserveData() {
@@ -91,16 +91,16 @@ class SearchFragment : BaseFragment() {
     }
 
     private fun initAdapter() {
-        rvSearchResultList.layoutManager = LinearLayoutManager(context)
+        resultListRecyclerView.layoutManager = LinearLayoutManager(context)
         searchListAdapter = SearchResultListAdapter(
             { movieId: Int -> goToMovieDetailPage(movieId) },
             { id -> getGenreNameById(id) })
-        rvSearchResultList.adapter = searchListAdapter
+        resultListRecyclerView.adapter = searchListAdapter
     }
 
     override fun initAction() {
         initScrollAction()
-        edtSearch.setOnEditorActionListener { _, actionId, _ ->
+        searchEditText.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 searchMovie()
                 return@setOnEditorActionListener true
@@ -108,20 +108,20 @@ class SearchFragment : BaseFragment() {
                 return@setOnEditorActionListener false
             }
         }
-        tvCancel.setOnClickListener {
+        cancelTextView.setOnClickListener {
             hideKeyboard()
             clearEditText()
         }
-        tvReload.setOnClickListener {
+        reloadTextView.setOnClickListener {
             searchMovie()
         }
     }
 
     private fun searchMovie() {
         hideKeyboard()
-        if (edtSearch.text.isNotEmpty()) {
+        if (searchEditText.text.isNotEmpty()) {
             searchViewModel.clearResult()
-            searchViewModel.setCurrentQuery(edtSearch.text.toString())
+            searchViewModel.setCurrentQuery(searchEditText.text.toString())
             searchViewModel.getNextMovieListPage()
         }
     }
@@ -137,7 +137,7 @@ class SearchFragment : BaseFragment() {
     }
 
     private fun initScrollAction() {
-        rvSearchResultList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        resultListRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
 
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
@@ -147,7 +147,7 @@ class SearchFragment : BaseFragment() {
 
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                val currentLayoutManager = rvSearchResultList.layoutManager
+                val currentLayoutManager = resultListRecyclerView.layoutManager
                 scrollOutItemNumber = when (currentLayoutManager) {
                     is LinearLayoutManager -> (currentLayoutManager as? LinearLayoutManager?)?.findLastVisibleItemPosition()
                         ?: 0
@@ -174,22 +174,22 @@ class SearchFragment : BaseFragment() {
 
     private fun setProgressBar(isLoading: Boolean) {
         if (isLoading) {
-            prbSearch.visibility = View.VISIBLE
-            layoutError.visibility = View.INVISIBLE
+            searchingProgressBar.visibility = View.VISIBLE
+            errorLayout.visibility = View.INVISIBLE
         } else if (!isLoading && searchViewModel.currentState.isError) {
-            prbSearch.visibility = View.INVISIBLE
-            layoutError.visibility = View.VISIBLE
+            searchingProgressBar.visibility = View.INVISIBLE
+            errorLayout.visibility = View.VISIBLE
         } else {
-            prbSearch.visibility = View.INVISIBLE
-            layoutError.visibility = View.INVISIBLE
+            searchingProgressBar.visibility = View.INVISIBLE
+            errorLayout.visibility = View.INVISIBLE
         }
     }
 
     private fun loadingMore(isLoadingMore: Boolean) {
         if (isLoadingMore) {
-            prbLoadMore.visibility = View.VISIBLE
+            loadMoreProgressBar.visibility = View.VISIBLE
         } else {
-            prbLoadMore.visibility = View.GONE
+            loadMoreProgressBar.visibility = View.GONE
         }
     }
 
@@ -199,7 +199,7 @@ class SearchFragment : BaseFragment() {
     }
 
     private fun clearEditText() {
-        edtSearch.text.clear()
+        searchEditText.text.clear()
     }
 
     private fun goToMovieDetailPage(movieId: Int) {

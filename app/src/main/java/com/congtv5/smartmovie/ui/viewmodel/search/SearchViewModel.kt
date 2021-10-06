@@ -1,4 +1,4 @@
-package com.congtv5.smartmovie.ui.viewmodel
+package com.congtv5.smartmovie.ui.viewmodel.search
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope

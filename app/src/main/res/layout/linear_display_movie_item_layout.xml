@@ -42,7 +42,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_8dp"
-            android:text="1h, 25mins"
             android:textSize="@dimen/grid_display_movie_item_movie_info_text_size" />
         <TextView
             android:id="@+id/tvMovieDescription"

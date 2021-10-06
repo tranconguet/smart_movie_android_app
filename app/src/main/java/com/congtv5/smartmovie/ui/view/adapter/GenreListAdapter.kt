@@ -13,7 +13,7 @@ import com.bumptech.glide.Glide
 import com.congtv5.domain.model.Genre
 import com.congtv5.smartmovie.R
 import com.congtv5.smartmovie.ui.view.adapter.diffutil.GenreDiffUtil
-import com.congtv5.smartmovie.utils.Constants
+import com.congtv5.smartmovie.utils.Constants.IMAGE_BASE_URL
 
 class GenreListAdapter(
     private val onClickGenre: (Int, String) -> Unit
@@ -25,12 +25,12 @@ class GenreListAdapter(
 
         var genre: Genre? = null
 
-        private val tvGenreTitle = view.findViewById<TextView>(R.id.tvGenreItemTitle)
-        private val ivGenreImage = view.findViewById<ImageView>(R.id.ivGenreItemImage)
-        private val layoutGenreItem = view.findViewById<ConstraintLayout>(R.id.layoutGenreItem)
+        private val genreTitleTextView = view.findViewById<TextView>(R.id.tvGenreItemTitle)
+        private val genreImageView = view.findViewById<ImageView>(R.id.ivGenreItemImage)
+        private val genreItemLayout = view.findViewById<ConstraintLayout>(R.id.layoutGenreItem)
 
         init {
-            layoutGenreItem.setOnClickListener {
+            genreItemLayout.setOnClickListener {
                 if (genre != null){
                     onClickGenre.invoke(genre!!.id, genre!!.name)
                 }else{
@@ -41,15 +41,15 @@ class GenreListAdapter(
 
         fun bind(genre: Genre) {
             this.genre = genre
-            tvGenreTitle.text = genre.name
+            genreTitleTextView.text = genre.name
 
-            val imageUrl = Constants.IMAGE_BASE_URL + genre.backdropPath
+            val imageUrl = IMAGE_BASE_URL + genre.backdropPath
 
-            Glide.with(ivGenreImage)
+            Glide.with(genreImageView)
                 .load(imageUrl)
                 .placeholder(R.drawable.ic_place_holder)
                 .error(R.drawable.ic_error)
-                .into(ivGenreImage)
+                .into(genreImageView)
         }
     }
 

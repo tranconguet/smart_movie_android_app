@@ -46,7 +46,6 @@ class MainActivity : BaseActivity() {
         // Setup the bottom navigation view with navController
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_nav)
         bottomNavigationView.setupWithNavController(navController)
-
         // Setup the ActionBar with navController and 3 top level destinations
         appBarConfiguration = AppBarConfiguration(
             setOf(R.id.home_graph, R.id.search_graph, R.id.genre_graph, R.id.artist_graph)

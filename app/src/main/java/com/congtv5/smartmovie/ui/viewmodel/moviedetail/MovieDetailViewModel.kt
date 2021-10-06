@@ -1,4 +1,4 @@
-package com.congtv5.smartmovie.ui.viewmodel
+package com.congtv5.smartmovie.ui.viewmodel.moviedetail
 
 import androidx.lifecycle.viewModelScope
 import com.congtv5.domain.Resource
@@ -7,7 +7,6 @@ import com.congtv5.domain.usecase.GetMovieDetailUseCase
 import com.congtv5.smartmovie.ui.base.viewmodel.BaseViewModel
 import com.congtv5.smartmovie.ui.viewstate.MovieDetailViewState
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,11 +30,11 @@ class MovieDetailViewModel @Inject constructor(
     fun getMovieDetail(movieId: Int) {
         loadMovieDetail?.cancel()
         loadMovieDetail = viewModelScope.launch {
+            setIsError(false)
             setIsMovieInfoLoading(true)
             setIsCastLoading(true)
-            setIsError(false)
 
-            coroutineScope {
+            launch {
                 when (val result = getMovieDetailUseCase.execute(movieId)) {
                     is Resource.Success -> {
                         store.dispatchState(newState = currentState.copy(movieDetail = result.data))
@@ -47,14 +46,10 @@ class MovieDetailViewModel @Inject constructor(
                 setIsMovieInfoLoading(false)
             }
 
-            coroutineScope {
+            launch {
                 when (val result = getCastAndCrewListUseCase.execute(movieId)) {
                     is Resource.Success -> {
-                        store.dispatchState(
-                            newState = currentState.copy(
-                                casts = result.data?.casts ?: listOf()
-                            )
-                        )
+                        store.dispatchState(newState = currentState.copy(casts = result.data?.casts ?: listOf()))
                     }
                     is Resource.Error -> {
                         setIsError(true)

@@ -1,4 +1,4 @@
-package com.congtv5.smartmovie.ui.viewmodel.genre
+package com.congtv5.smartmovie.ui.viewmodel.moviebygenre
 
 import com.congtv5.domain.Resource
 import com.congtv5.domain.model.MovieDetail

@@ -3,16 +3,14 @@ package com.congtv5.smartmovie.ui.viewmodel.home
 import androidx.lifecycle.viewModelScope
 import com.congtv5.domain.Resource
 import com.congtv5.domain.model.FavoriteMovie
+import com.congtv5.domain.model.Movie
 import com.congtv5.domain.model.MovieListPage
 import com.congtv5.domain.usecase.*
 import com.congtv5.smartmovie.ui.base.viewmodel.BaseViewModel
 import com.congtv5.smartmovie.ui.viewstate.HomeViewState
 import com.congtv5.smartmovie.utils.MovieCategory
 import com.congtv5.smartmovie.utils.MovieItemDisplayType
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import javax.inject.Inject
 
 class HomeViewModel @Inject constructor(
@@ -61,12 +59,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun isMovieFavorite(movieId: Int): Boolean {
-        val favoriteMovieIds =
-            _favoriteList.filter { item -> item.isLiked }.map { item -> item.movieId }
-        return favoriteMovieIds.contains(movieId)
-    }
-
     fun applyFavoriteToAllMovie(favList: List<FavoriteMovie>) {
         val sectionMap = currentState.movieSectionMap
         sectionMap.map { entry ->
@@ -106,25 +98,25 @@ class HomeViewModel @Inject constructor(
                 upComingUseCase,
                 nowPlayingUseCase
             ).awaitAll()
+            val movieList = mutableListOf<Movie>()
             rsList.forEach { resource ->
-                if (resource is Resource.Success) {
-                    resource.data?.results?.forEach { movie ->
-                        launch {
-                            val movieDetail = getMovieDetailUseCase.execute(movie.id)
-                            movie.runtime = movieDetail.data?.runtime ?: 0
-                        }
-                    }
-                }
+                movieList.addAll(resource.data?.results ?: listOf())
             }
+            movieList.map { movie ->
+                launch { // get each movie runtime in parallel because api doesn't provide movie runtime
+                    val movieDetail = getMovieDetailUseCase.execute(movie.id)
+                    movie.runtime = movieDetail.data?.runtime ?: 0
+                }
+            }.joinAll()
             val sectionMap = mutableMapOf<MovieCategory, Resource<MovieListPage>?>(
                 MovieCategory.POPULAR to rsList[0],
                 MovieCategory.TOP_RATED to rsList[1],
                 MovieCategory.UP_COMING to rsList[2],
                 MovieCategory.NOW_PLAYING to rsList[3],
             )
-            if (sectionMap.values.any { it is Resource.Success }){
+            if (sectionMap.values.any { it is Resource.Success }) {
                 setIsError(false)
-            }else{
+            } else {
                 setIsError(true)
             }
             store.dispatchState(newState = currentState.copy(movieSectionMap = sectionMap))
@@ -167,13 +159,6 @@ class HomeViewModel @Inject constructor(
         store.dispatchState(newState = currentState.copy(currentPageType = movieCategory))
     }
 
-    override fun onCleared() {
-        loadMovieListJob?.cancel()
-        loadFavoriteMovieJob?.cancel()
-        insertFavoriteMovieJob?.cancel()
-        super.onCleared()
-    }
-
     private fun getEmptySectionMap(): MutableMap<MovieCategory, Resource<MovieListPage>?> {
         return mutableMapOf(
             MovieCategory.POPULAR to null,
@@ -181,5 +166,12 @@ class HomeViewModel @Inject constructor(
             MovieCategory.UP_COMING to null,
             MovieCategory.NOW_PLAYING to null
         )
+    }
+
+    override fun onCleared() {
+        loadMovieListJob?.cancel()
+        loadFavoriteMovieJob?.cancel()
+        insertFavoriteMovieJob?.cancel()
+        super.onCleared()
     }
 }

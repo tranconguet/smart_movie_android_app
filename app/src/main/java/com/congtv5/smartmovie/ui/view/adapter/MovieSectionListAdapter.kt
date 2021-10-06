@@ -22,8 +22,7 @@ class MovieSectionListAdapter(
     private val displayType: MovieItemDisplayType,
     private val onMovieClick: ((Int) -> Unit),
     private val onSectionTitleClick: ((MovieCategory) -> Unit),
-    private var onStarClick: (FavoriteMovie) -> Unit,
-    private var isMovieFavorite: (Int) -> Boolean
+    private val onStarClick: (FavoriteMovie) -> Unit
 ) : ListAdapter<MovieSection, MovieSectionListAdapter.MovieSectionViewHolder>(MovieSectionDiffUtil()) {
 
     class MovieSectionViewHolder(
@@ -32,24 +31,23 @@ class MovieSectionListAdapter(
         displayType: MovieItemDisplayType,
         onMovieClick: ((Int) -> Unit),
         onSectionTitleClick: ((MovieCategory) -> Unit),
-        onStarClick: (FavoriteMovie) -> Unit,
-        isMovieFavorite: (Int) -> Boolean
+        onStarClick: (FavoriteMovie) -> Unit
     ) : RecyclerView.ViewHolder(view) {
 
         private var movieSection: MovieSection? = null
         private var movieListAdapter: MovieListAdapter? = null
-        private val rvMovieList = view.findViewById<RecyclerView>(R.id.rvMovieList)
-        private val tvMovieSection = view.findViewById<TextView>(R.id.tvMovieSection)
-        private val tvSeeAll = view.findViewById<TextView>(R.id.tvSeeAll)
+        private val movieListRecyclerView = view.findViewById<RecyclerView>(R.id.rvMovieList)
+        private val movieSectionTitleTextView = view.findViewById<TextView>(R.id.tvMovieSection)
+        private val seeAllTextView = view.findViewById<TextView>(R.id.tvSeeAll)
 
         init {
-            movieListAdapter = MovieListAdapter(displayType, onMovieClick, onStarClick, isMovieFavorite)
-            rvMovieList.adapter = movieListAdapter
-            rvMovieList.layoutManager = when (displayType) {
+            movieListAdapter = MovieListAdapter(displayType, onMovieClick, onStarClick)
+            movieListRecyclerView.adapter = movieListAdapter
+            movieListRecyclerView.layoutManager = when (displayType) {
                 MovieItemDisplayType.GRID -> GridLayoutManager(context, GRID_ITEM_PER_ROW)
                 MovieItemDisplayType.VERTICAL_LINEAR -> LinearLayoutManager(context)
             }
-            tvSeeAll.setOnClickListener {
+            seeAllTextView.setOnClickListener {
                 if (movieSection != null) {
                     onSectionTitleClick.invoke(movieSection!!.sectionType)
                 } else {
@@ -60,7 +58,7 @@ class MovieSectionListAdapter(
 
         fun bind(movieSection: MovieSection) {
             this.movieSection = movieSection
-            tvMovieSection.text = movieSection.sectionType.text
+            movieSectionTitleTextView.text = movieSection.sectionType.text
             movieListAdapter?.submitList(movieSection.movieList)
         }
     }
@@ -74,8 +72,7 @@ class MovieSectionListAdapter(
             displayType,
             onMovieClick,
             onSectionTitleClick,
-            onStarClick,
-            isMovieFavorite
+            onStarClick
         )
     }
 
