@@ -11,6 +11,9 @@ import com.congtv5.smartmovie.ui.viewmodel.home.PopularListViewModel
 import com.congtv5.smartmovie.utils.MovieCategory
 import javax.inject.Inject
 
+/**
+ *
+ */
 class PopularBaseMovieFragment : BaseMovieListFragment() {
 
     @Inject

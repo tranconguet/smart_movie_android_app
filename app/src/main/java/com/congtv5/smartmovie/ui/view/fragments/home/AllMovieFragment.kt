@@ -1,5 +1,6 @@
 package com.congtv5.smartmovie.ui.view.fragments.home
 
+import android.annotation.SuppressLint
 import android.view.View
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -114,6 +115,7 @@ class AllMovieFragment : BaseFragment() {
             })
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun updateSections(sectionMap: Map<MovieCategory, Resource<MovieListPage>?>) {
         // get success loaded section
         val sectionList = sectionMap.filter { item ->
@@ -124,6 +126,8 @@ class AllMovieFragment : BaseFragment() {
         }.toMutableList()
         movieGridListAdapter?.submitList(sectionList)
         movieLinearListAdapter?.submitList(sectionList)
+        movieGridListAdapter?.notifyDataSetChanged()
+        movieLinearListAdapter?.notifyDataSetChanged()
     }
 
     private fun getListForSection(movieList: List<Movie>): List<Movie> {

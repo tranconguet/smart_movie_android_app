@@ -1,5 +1,6 @@
 package com.congtv5.smartmovie.ui.viewmodel.genre
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.congtv5.domain.Resource
 import com.congtv5.domain.usecase.GetGenreListUseCase
@@ -16,6 +17,10 @@ class GenreListViewModel @Inject constructor(
     private val getGenreListUseCase: GetGenreListUseCase,
     private val getMovieListPageByGenreUseCase: GetMovieListPageByGenreUseCase
 ) : BaseViewModel<GenreListViewState>() {
+
+    init {
+        Log.d("GenreListViewModel", "init() called")
+    }
 
     private var loadGenreListJob: Job? = null
 
@@ -71,6 +76,7 @@ class GenreListViewModel @Inject constructor(
     }
 
     override fun onCleared() {
+        Log.d("GenreListViewModel", "onCleared() called")
         loadGenreListJob?.cancel()
         super.onCleared()
     }
